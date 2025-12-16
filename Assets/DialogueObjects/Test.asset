@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80b256836cf751044a320d70b45ed731, type: 3}
+  m_Name: Test
+  m_EditorClassIdentifier: 
+  dialogue:
+  - Hello. I don't believe we've met before.
+  - Are you lost?
+  responses:
+  - responseText: Yes
+    dialogueObject: {fileID: 11400000, guid: add4b71b2402c104c9992dfc4aa00026, type: 2}
+  - responseText: No
+    dialogueObject: {fileID: 11400000, guid: cb2395e821ddc89448e91415586e92ba, type: 2}
