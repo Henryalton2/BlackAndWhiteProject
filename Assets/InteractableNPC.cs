@@ -6,6 +6,8 @@ public class InteractableNPC : MonoBehaviour
 {
     [Header("NPC Settings")]
     [SerializeField] private string npcName = "NPC";
+    [SerializeField] private string initialName = "???";
+    [SerializeField] private int revealNameAtLine = -1; // -1 means never change, 0+ is the line number
     [SerializeField] private float interactionDistance = 3f;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private bool showDebug = false;
@@ -26,6 +28,7 @@ public class InteractableNPC : MonoBehaviour
     private bool isDialogueActive = false;
     private int currentLineIndex = 0;
     private Coroutine typingCoroutine;
+    private string currentDisplayName;
 
     void Start()
     {
@@ -36,6 +39,9 @@ public class InteractableNPC : MonoBehaviour
             player = playerObj.transform;
         }
 
+        // Set initial display name
+        currentDisplayName = string.IsNullOrEmpty(initialName) ? npcName : initialName;
+
         // Hide UI at start
         if (promptUI != null) promptUI.SetActive(false);
         if (dialogueUI != null) dialogueUI.SetActive(false);
@@ -43,7 +49,7 @@ public class InteractableNPC : MonoBehaviour
         // Set prompt text
         if (promptText != null)
         {
-            promptText.text = $"Press {interactKey} to talk to {npcName}";
+            promptText.text = $"Press {interactKey} to talk to {currentDisplayName}";
         }
     }
 
@@ -98,7 +104,7 @@ public class InteractableNPC : MonoBehaviour
         // Set NPC name
         if (npcNameText != null)
         {
-            npcNameText.text = npcName;
+            npcNameText.text = currentDisplayName;
         }
 
         // Start typing first line
@@ -116,8 +122,28 @@ public class InteractableNPC : MonoBehaviour
             return;
         }
 
-        // Move to next line
+        // Move to next line first
         currentLineIndex++;
+
+        // Check if we should reveal the name at this line
+        if (revealNameAtLine >= 0 && currentLineIndex == revealNameAtLine)
+        {
+            currentDisplayName = npcName;
+            if (npcNameText != null)
+            {
+                npcNameText.text = currentDisplayName;
+            }
+            // Update prompt text for future interactions
+            if (promptText != null)
+            {
+                promptText.text = $"Press {interactKey} to talk to {currentDisplayName}";
+            }
+
+            if (showDebug)
+            {
+                Debug.Log($"Name revealed! Changed from {initialName} to {npcName}");
+            }
+        }
 
         if (currentLineIndex < dialogueLines.Length)
         {
