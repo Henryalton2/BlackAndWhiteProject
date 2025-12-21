@@ -6905,7 +6905,7 @@ Transform:
   m_GameObject: {fileID: 604478553}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 449.62, y: 114.92, z: 632.63}
+  m_LocalPosition: {x: 449.62, y: 114.891, z: 632.63}
   m_LocalScale: {x: 0.2, y: 0.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -8676,7 +8676,7 @@ Transform:
   m_GameObject: {fileID: 1172429151}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -2.46, z: 0}
+  m_LocalPosition: {x: 0, y: -2.38, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8748,14 +8748,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   npcName: Traveler
   initialName: '?'
-  revealNameAtLine: 2
   interactionDistance: 3
   interactKey: 101
   showDebug: 0
-  dialogueLines:
-  - Taco
-  - no
-  - I am Who I am
+  dialogueSections:
+  - sectionName: Introduction
+    dialogueLines:
+    - Hello!
+    - I am who I am
+    - Good Luck
+    revealNameAtLine: 2
+    hasBeenPlayed: 0
+  - sectionName: unlock done
+    dialogueLines:
+    - for New text make sure reveal name is set to -1 except for the inicial text!
+    revealNameAtLine: -1
+    hasBeenPlayed: 0
+  currentSectionIndex: 0
+  repeatDialogue:
+  - 'Good Luck '
   typingSpeed: 0.05
   promptUI: {fileID: 54630736}
   promptText: {fileID: 1182729673}
