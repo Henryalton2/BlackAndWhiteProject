@@ -55,7 +55,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: ad0b0ac838a2d1549b50c7050d537041, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -144,6 +144,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   billboardType: 0
+  useDistanceCheck: 1
+  billboardDistance: 50
+  transitionSpeed: 5
+  playerTransform: {fileID: 0}
+  showDebug: 0
   lockX: 1
   lockY: 0
   lockZ: 0
