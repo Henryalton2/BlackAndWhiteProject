@@ -8924,9 +8924,17 @@ MonoBehaviour:
   interactionDistance: 3
   interactKey: 101
   showDebug: 0
-  dialogueSections: []
+  dialogueSections:
+  - sectionName: Test
+    dialogueLines:
+    - Hello
+    - tac
+    - taco
+    revealNameAtLine: 0
+    hasBeenPlayed: 0
   currentSectionIndex: 0
-  repeatDialogue: []
+  repeatDialogue:
+  - Good Luck
   typingSpeed: 0.05
   audioSource: {fileID: 2066169592}
   typingSFX: {fileID: 8300000, guid: fde55efaf97bbc944a4cb6c79636db6d, type: 3}
