@@ -8934,7 +8934,7 @@ MonoBehaviour:
     hasBeenPlayed: 0
   currentSectionIndex: 0
   repeatDialogue:
-  - Good Luck
+  - for New text make sure reveal name is set to -1 except for the inicial text!
   typingSpeed: 0.05
   audioSource: {fileID: 2066169592}
   typingSFX: {fileID: 8300000, guid: fde55efaf97bbc944a4cb6c79636db6d, type: 3}
