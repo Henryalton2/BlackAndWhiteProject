@@ -8768,6 +8768,7 @@ GameObject:
   - component: {fileID: 604478555}
   - component: {fileID: 604478557}
   - component: {fileID: 604478558}
+  - component: {fileID: 604478559}
   m_Layer: 0
   m_Name: FireMan
   m_TagString: Untagged
@@ -8906,6 +8907,34 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5.21, y: 9.27, z: 1}
   m_Center: {x: -0.49, y: 0, z: 0}
+--- !u!114 &604478559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 604478553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b02aca794b10d5499a46b8329dd160d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  npcName: Traveler
+  initialName: '?'
+  revealNameAtLine: 2
+  interactionDistance: 3
+  interactKey: 101
+  showDebug: 0
+  dialogueLines:
+  - Taco
+  - no
+  - I am Who I am
+  typingSpeed: 0.05
+  promptUI: {fileID: 54630736}
+  promptText: {fileID: 1182729673}
+  dialogueUI: {fileID: 1138851187}
+  dialogueText: {fileID: 1685258392}
+  npcNameText: {fileID: 558288985}
 --- !u!1001 &612121929
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9279,7 +9308,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &659491684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12668,7 +12697,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1172429152}
   - component: {fileID: 1172429153}
-  - component: {fileID: 1172429154}
   m_Layer: 0
   m_Name: FireManWhiteBackground_0
   m_TagString: Untagged
@@ -12743,34 +12771,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &1172429154
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1172429151}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b02aca794b10d5499a46b8329dd160d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  npcName: Traveler
-  initialName: '?'
-  revealNameAtLine: 2
-  interactionDistance: 3
-  interactKey: 101
-  showDebug: 0
-  dialogueLines:
-  - Taco
-  - no
-  - I am Who I am
-  typingSpeed: 0.05
-  promptUI: {fileID: 54630736}
-  promptText: {fileID: 1182729673}
-  dialogueUI: {fileID: 1138851187}
-  dialogueText: {fileID: 1685258392}
-  npcNameText: {fileID: 558288985}
 --- !u!1 &1182729671
 GameObject:
   m_ObjectHideFlags: 0
