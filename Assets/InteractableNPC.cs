@@ -1,20 +1,43 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
+
+[System.Serializable]
+public class DialogueSection
+{
+    public string sectionName;
+    [TextArea(3, 10)] public string[] dialogueLines;
+    public int revealNameAtLine = -1;
+    public bool hasBeenPlayed = false;
+}
 
 public class InteractableNPC : MonoBehaviour
 {
     [Header("NPC Settings")]
     [SerializeField] private string npcName = "NPC";
     [SerializeField] private string initialName = "???";
-    [SerializeField] private int revealNameAtLine = -1; // -1 means never change, 0+ is the line number
     [SerializeField] private float interactionDistance = 3f;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private bool showDebug = false;
 
-    [Header("Dialogue")]
-    [SerializeField][TextArea(3, 10)] private string[] dialogueLines;
+    [Header("Dialogue Sections")]
+    [SerializeField] private List<DialogueSection> dialogueSections = new List<DialogueSection>();
+    [SerializeField] private int currentSectionIndex = 0;
+
+    [Header("Repeat Dialogue")]
+    [Tooltip("This dialogue plays when talking to NPC after completing current section but before unlocking next")]
+    [SerializeField][TextArea(3, 10)] private string[] repeatDialogue;
+
+    [Header("Settings")]
     [SerializeField] private float typingSpeed = 0.05f;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip typingSFX;
+    [SerializeField] private bool playSFXOnEveryLetter = true;
+    [Tooltip("Play sound every N letters (1 = every letter, 2 = every other letter, etc.)")]
+    [SerializeField] private int sfxFrequency = 1;
 
     [Header("UI References")]
     [SerializeField] private GameObject promptUI;
@@ -29,6 +52,7 @@ public class InteractableNPC : MonoBehaviour
     private int currentLineIndex = 0;
     private Coroutine typingCoroutine;
     private string currentDisplayName;
+    private string[] currentDialogueLines;
 
     void Start()
     {
@@ -37,6 +61,17 @@ public class InteractableNPC : MonoBehaviour
         if (playerObj != null)
         {
             player = playerObj.transform;
+        }
+
+        // Set up audio source if not assigned
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null && typingSFX != null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
         }
 
         // Set initial display name
@@ -67,7 +102,7 @@ public class InteractableNPC : MonoBehaviour
 
         if (showDebug)
         {
-            Debug.Log($"{npcName}: Distance = {distance:F2}, In Range = {isInRange}, Prompt UI = {promptUI != null}");
+            Debug.Log($"{npcName}: Distance = {distance:F2}, In Range = {isInRange}, Current Section = {currentSectionIndex}");
         }
 
         // Show/hide prompt
@@ -92,7 +127,48 @@ public class InteractableNPC : MonoBehaviour
 
     void StartDialogue()
     {
-        if (dialogueLines.Length == 0) return;
+        // Determine which dialogue to play
+        if (currentSectionIndex < dialogueSections.Count)
+        {
+            DialogueSection currentSection = dialogueSections[currentSectionIndex];
+
+            // If this section hasn't been played, play it
+            if (!currentSection.hasBeenPlayed)
+            {
+                currentDialogueLines = currentSection.dialogueLines;
+
+                if (showDebug)
+                {
+                    Debug.Log($"Playing section: {currentSection.sectionName}");
+                }
+            }
+            else
+            {
+                // Section already played, use repeat dialogue
+                currentDialogueLines = repeatDialogue;
+
+                if (showDebug)
+                {
+                    Debug.Log($"Section '{currentSection.sectionName}' already played. Using repeat dialogue.");
+                }
+            }
+        }
+        else
+        {
+            // All sections completed, use repeat dialogue
+            currentDialogueLines = repeatDialogue;
+
+            if (showDebug)
+            {
+                Debug.Log("All sections completed. Using repeat dialogue.");
+            }
+        }
+
+        if (currentDialogueLines == null || currentDialogueLines.Length == 0)
+        {
+            if (showDebug) Debug.LogWarning("No dialogue lines available!");
+            return;
+        }
 
         isDialogueActive = true;
         currentLineIndex = 0;
@@ -108,7 +184,7 @@ public class InteractableNPC : MonoBehaviour
         }
 
         // Start typing first line
-        DisplayLine(dialogueLines[currentLineIndex]);
+        DisplayLine(currentDialogueLines[currentLineIndex]);
     }
 
     void ContinueDialogue()
@@ -117,7 +193,7 @@ public class InteractableNPC : MonoBehaviour
         if (typingCoroutine != null)
         {
             StopCoroutine(typingCoroutine);
-            dialogueText.text = dialogueLines[currentLineIndex];
+            dialogueText.text = currentDialogueLines[currentLineIndex];
             typingCoroutine = null;
             return;
         }
@@ -125,29 +201,35 @@ public class InteractableNPC : MonoBehaviour
         // Move to next line first
         currentLineIndex++;
 
-        // Check if we should reveal the name at this line
-        if (revealNameAtLine >= 0 && currentLineIndex == revealNameAtLine)
+        // Check if we should reveal the name at this line (only for section dialogue)
+        if (currentSectionIndex < dialogueSections.Count &&
+            !dialogueSections[currentSectionIndex].hasBeenPlayed)
         {
-            currentDisplayName = npcName;
-            if (npcNameText != null)
-            {
-                npcNameText.text = currentDisplayName;
-            }
-            // Update prompt text for future interactions
-            if (promptText != null)
-            {
-                promptText.text = $"Press {interactKey} to talk to {currentDisplayName}";
-            }
+            DialogueSection currentSection = dialogueSections[currentSectionIndex];
 
-            if (showDebug)
+            if (currentSection.revealNameAtLine >= 0 && currentLineIndex == currentSection.revealNameAtLine)
             {
-                Debug.Log($"Name revealed! Changed from {initialName} to {npcName}");
+                currentDisplayName = npcName;
+                if (npcNameText != null)
+                {
+                    npcNameText.text = currentDisplayName;
+                }
+                // Update prompt text for future interactions
+                if (promptText != null)
+                {
+                    promptText.text = $"Press {interactKey} to talk to {currentDisplayName}";
+                }
+
+                if (showDebug)
+                {
+                    Debug.Log($"Name revealed! Changed from {initialName} to {npcName}");
+                }
             }
         }
 
-        if (currentLineIndex < dialogueLines.Length)
+        if (currentLineIndex < currentDialogueLines.Length)
         {
-            DisplayLine(dialogueLines[currentLineIndex]);
+            DisplayLine(currentDialogueLines[currentLineIndex]);
         }
         else
         {
@@ -167,10 +249,23 @@ public class InteractableNPC : MonoBehaviour
     IEnumerator TypeText(string line)
     {
         dialogueText.text = "";
+        int letterCount = 0;
 
         foreach (char c in line)
         {
             dialogueText.text += c;
+            letterCount++;
+
+            // Play typing sound effect
+            if (playSFXOnEveryLetter && typingSFX != null && audioSource != null)
+            {
+                // Check if we should play sound based on frequency
+                if (letterCount % sfxFrequency == 0)
+                {
+                    audioSource.PlayOneShot(typingSFX);
+                }
+            }
+
             yield return new WaitForSeconds(typingSpeed);
         }
 
@@ -179,6 +274,19 @@ public class InteractableNPC : MonoBehaviour
 
     void EndDialogue()
     {
+        // Mark current section as played if it was a section dialogue
+        if (currentSectionIndex < dialogueSections.Count &&
+            !dialogueSections[currentSectionIndex].hasBeenPlayed &&
+            currentDialogueLines == dialogueSections[currentSectionIndex].dialogueLines)
+        {
+            dialogueSections[currentSectionIndex].hasBeenPlayed = true;
+
+            if (showDebug)
+            {
+                Debug.Log($"Section '{dialogueSections[currentSectionIndex].sectionName}' marked as complete.");
+            }
+        }
+
         isDialogueActive = false;
         currentLineIndex = 0;
 
@@ -189,6 +297,57 @@ public class InteractableNPC : MonoBehaviour
         {
             promptUI.SetActive(true);
         }
+    }
+
+    // Public method to unlock the next dialogue section
+    public void UnlockNextSection()
+    {
+        if (currentSectionIndex < dialogueSections.Count - 1)
+        {
+            currentSectionIndex++;
+
+            if (showDebug)
+            {
+                Debug.Log($"Unlocked section {currentSectionIndex}: {dialogueSections[currentSectionIndex].sectionName}");
+            }
+        }
+        else
+        {
+            if (showDebug)
+            {
+                Debug.Log("No more sections to unlock.");
+            }
+        }
+    }
+
+    // Public method to unlock a specific section by index
+    public void UnlockSection(int sectionIndex)
+    {
+        if (sectionIndex >= 0 && sectionIndex < dialogueSections.Count)
+        {
+            currentSectionIndex = sectionIndex;
+
+            if (showDebug)
+            {
+                Debug.Log($"Unlocked section {sectionIndex}: {dialogueSections[sectionIndex].sectionName}");
+            }
+        }
+    }
+
+    // Public method to check current section
+    public int GetCurrentSectionIndex()
+    {
+        return currentSectionIndex;
+    }
+
+    // Public method to check if a section has been played
+    public bool HasSectionBeenPlayed(int sectionIndex)
+    {
+        if (sectionIndex >= 0 && sectionIndex < dialogueSections.Count)
+        {
+            return dialogueSections[sectionIndex].hasBeenPlayed;
+        }
+        return false;
     }
 
     // Draw interaction range in editor
