@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
-
-// Attach this to a Canvas
 public class SimpleInventoryUI : MonoBehaviour
 {
     [Header("Settings")]

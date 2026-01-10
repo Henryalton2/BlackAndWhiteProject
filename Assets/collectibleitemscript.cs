@@ -1,6 +1,4 @@
 using UnityEngine;
-
-// Attach this to collectible objects in your scene
 public class CollectibleItem : MonoBehaviour
 {
     [Header("Item Properties")]
