@@ -121,6 +121,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   billboardType: 0
+  useDistanceCheck: 1
+  billboardDistance: 50
+  transitionSpeed: 5
+  playerTransform: {fileID: 0}
+  showDebug: 0
   lockX: 1
   lockY: 0
   lockZ: 0
