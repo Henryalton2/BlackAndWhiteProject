@@ -262,6 +262,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2769166377629162941}
   - component: {fileID: 7740176682623384965}
+  - component: {fileID: 1514120983257793454}
   m_Layer: 0
   m_Name: JuneGrass cluster
   m_TagString: Untagged
@@ -339,3 +340,16 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1514120983257793454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7782822554211358146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce6774e0f01e8104ca3dffc3b11f96f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bendAmount: 0.003
