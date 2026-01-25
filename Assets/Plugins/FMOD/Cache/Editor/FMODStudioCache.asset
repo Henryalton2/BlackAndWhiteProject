@@ -1,5 +1,25 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8923866373864955784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Music.bank
+  m_EditorClassIdentifier: 
+  Path: ../../../Black+white assets/DancingStars/Build/Desktop/Music.bank
+  Name: Music
+  StudioPath: bank:/Music
+  lastModified: 639048893310880425
+  FileSizes:
+  - Name: Desktop
+    Value: 3483040
+  Exists: 1
 --- !u!114 &-7118039859414973531
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15,10 +35,10 @@ MonoBehaviour:
   Path: ../../../Black+white assets/DancingStars/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639048052692917550
+  lastModified: 639048893307739158
   FileSizes:
   - Name: Desktop
-    Value: 1116
+    Value: 1714
   Exists: 1
 --- !u!114 &-7091654213385926634
 MonoBehaviour:
@@ -40,8 +60,8 @@ MonoBehaviour:
     Data4: -1763034067
   Banks:
   - {fileID: -1644068593770971299}
-  - {fileID: -3889750288120087929}
   - {fileID: 1512920175829488134}
+  - {fileID: -3889750288120087929}
   IsStream: 0
   Is3D: 1
   IsOneShot: 1
@@ -51,6 +71,108 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 0
+--- !u!114 &-6275468913715599574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Bass
+  m_EditorClassIdentifier: 
+  Path: event:/Bass
+  Guid:
+    Data1: 696364491
+    Data2: 1133718379
+    Data3: 1907485876
+    Data4: -685107666
+  Banks:
+  - {fileID: -8923866373864955784}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 96000
+--- !u!114 &-4994471282942998201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/ViewReveal
+  m_EditorClassIdentifier: 
+  Path: event:/ViewReveal
+  Guid:
+    Data1: -2092656805
+    Data2: 1121603826
+    Data3: -127721845
+    Data4: -2143235068
+  Banks:
+  - {fileID: -8923866373864955784}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 7000
+--- !u!114 &-4744895395013018004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/Violin 1/Level
+  m_EditorClassIdentifier: 
+  Name: Level
+  StudioPath: 
+  Min: 0
+  Max: 1
+  Default: 0
+  ID:
+    data1: 4085406749
+    data2: 239839443
+  Type: 0
+  IsGlobal: 0
+  Labels: []
+  Exists: 1
+--- !u!114 &-4515635725276478891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/Violin1_2d/Level
+  m_EditorClassIdentifier: 
+  Name: Level
+  StudioPath: 
+  Min: 0
+  Max: 1
+  Default: 0
+  ID:
+    data1: 4085406749
+    data2: 239839443
+  Type: 0
+  IsGlobal: 0
+  Labels: []
+  Exists: 1
 --- !u!114 &-3889750288120087929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66,11 +188,66 @@ MonoBehaviour:
   Path: ../../../Black+white assets/DancingStars/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639048052692884997
+  lastModified: 639048893307694772
   FileSizes:
   - Name: Desktop
-    Value: 2387616
+    Value: 2388352
   Exists: 1
+--- !u!114 &-3795339657205760600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Atmosphere_2D
+  m_EditorClassIdentifier: 
+  Path: event:/Atmosphere_2D
+  Guid:
+    Data1: -522078575
+    Data2: 1198848302
+    Data3: -1885429615
+    Data4: 1769777122
+  Banks:
+  - {fileID: 1512920175829488134}
+  IsStream: 1
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 134436
+--- !u!114 &-2757373327151209499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Violin 1
+  m_EditorClassIdentifier: 
+  Path: event:/Violin 1
+  Guid:
+    Data1: -613878445
+    Data2: 1177799486
+    Data3: -354829428
+    Data4: -617097089
+  Banks:
+  - {fileID: -8923866373864955784}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters:
+  - {fileID: -4744895395013018004}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 96000
 --- !u!114 &-2355922991809110329
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -159,18 +336,26 @@ MonoBehaviour:
   - {fileID: -1644068593770971299}
   - {fileID: -3889750288120087929}
   - {fileID: 1512920175829488134}
+  - {fileID: -8923866373864955784}
   EditorEvents:
   - {fileID: -7091654213385926634}
   - {fileID: 5807816318949695452}
   - {fileID: 5655873569958788966}
   - {fileID: -1749640029156480282}
   - {fileID: 3036989762501550412}
+  - {fileID: -2757373327151209499}
+  - {fileID: -6275468913715599574}
+  - {fileID: 2647497566387111378}
+  - {fileID: 4220853919439695373}
+  - {fileID: 2597227897505733189}
+  - {fileID: -3795339657205760600}
+  - {fileID: -4994471282942998201}
   EditorParameters: []
   MasterBanks:
   - {fileID: -3889750288120087929}
   StringsBanks:
   - {fileID: -7118039859414973531}
-  cacheTime: 639048052702548187
+  cacheTime: 639048893310880425
   cacheVersion: 131621
 --- !u!114 &1364515473990294134
 MonoBehaviour:
@@ -211,11 +396,66 @@ MonoBehaviour:
   Path: ../../../Black+white assets/DancingStars/Build/Desktop/SFX.bank
   Name: SFX
   StudioPath: bank:/SFX
-  lastModified: 639048052702548187
+  lastModified: 639048714028329068
   FileSizes:
   - Name: Desktop
-    Value: 3500224
+    Value: 3501888
   Exists: 1
+--- !u!114 &2597227897505733189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Violin1_2d
+  m_EditorClassIdentifier: 
+  Path: event:/Violin1_2d
+  Guid:
+    Data1: -1132636726
+    Data2: 1318355103
+    Data3: -933793601
+    Data4: -1519140586
+  Banks:
+  - {fileID: -8923866373864955784}
+  IsStream: 1
+  Is3D: 0
+  IsOneShot: 0
+  Parameters:
+  - {fileID: -4515635725276478891}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 96000
+--- !u!114 &2647497566387111378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Violin 2
+  m_EditorClassIdentifier: 
+  Path: event:/Violin 2
+  Guid:
+    Data1: -417240078
+    Data2: 1318719656
+    Data3: -478388549
+    Data4: -1783006041
+  Banks:
+  - {fileID: -8923866373864955784}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 96000
 --- !u!114 &3036989762501550412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -243,6 +483,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 13733
+--- !u!114 &4220853919439695373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Celeste
+  m_EditorClassIdentifier: 
+  Path: event:/Celeste
+  Guid:
+    Data1: -1658246408
+    Data2: 1201109153
+    Data3: 181716608
+    Data4: 419464457
+  Banks:
+  - {fileID: -8923866373864955784}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 96000
 --- !u!114 &5655873569958788966
 MonoBehaviour:
   m_ObjectHideFlags: 0
