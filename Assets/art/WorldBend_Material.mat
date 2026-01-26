@@ -93,7 +93,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BendAmount: 2.1660364e-30
+    - _BendAmount: 4.258508e-30
     - _BlendRange: 2
     - _BlendSharpness: 5
     - _BumpScale: 1
