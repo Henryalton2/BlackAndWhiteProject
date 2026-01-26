@@ -70,6 +70,13 @@ public class InteractableNPC : MonoBehaviour
             Debug.Log($"{npcName}: Distance = {distance:F2}, In Range = {isInRange}, Prompt UI = {promptUI != null}");
         }
 
+        // Cancel dialogue if player walks away
+        if (isDialogueActive && !isInRange)
+        {
+            EndDialogue();
+            return;
+        }
+
         // Show/hide prompt
         if (promptUI != null && !isDialogueActive)
         {
@@ -181,6 +188,13 @@ public class InteractableNPC : MonoBehaviour
     {
         isDialogueActive = false;
         currentLineIndex = 0;
+
+        // Stop any typing animation
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
 
         if (dialogueUI != null) dialogueUI.SetActive(false);
 
