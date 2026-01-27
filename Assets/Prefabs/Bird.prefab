@@ -173,6 +173,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97930a0b7cbfe1348873e776a6133ff8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseSpeed: 5
-  lifeTime: 15
+  baseSpeed: 9
+  lifeTime: 30
   soundDelay: 10
