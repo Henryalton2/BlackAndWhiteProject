@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{9824fcde-33db-4695-91d4-ce5efd9ce593}">
+		<property name="assetPath">
+			<value>a-gentle-breeze-wind-4-14681.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>24</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>113.352</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{75ae59bf-fd5c-47ba-9477-2ec5d8bf79c9}</destination>
+		</relationship>
+	</object>
+</objects>

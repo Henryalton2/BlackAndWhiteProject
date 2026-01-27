@@ -112,7 +112,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _BendAmount: 0.0017798218
+    - _BendAmount: 1e-44
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
@@ -131,7 +131,7 @@ Material:
     - _Height1: -633.7
     - _Height2: 28.32
     - _HeightBlend: 20
-    - _Invert: 0
+    - _Invert: 1
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
