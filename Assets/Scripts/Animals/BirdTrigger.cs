@@ -3,20 +3,25 @@ using UnityEngine;
 public class BirdTrigger : MonoBehaviour
 {
     [Header("Spawner Reference")]
-    public BirdSpawner birdSpawner;      // Drag your BirdSpawner here
+    public BirdSpawner birdSpawner;
 
     [Header("Trigger Settings")]
-    public int birdsToSpawn = 1;         // How many birds spawn when player enters
-    public bool singleUse = true;        // Should trigger only once?
+    public int birdsToSpawn = 1;
+    public bool singleUse = true;
+
+    [Tooltip("Maximum additional distance variation per bird")]
+    public float spawnDistanceVariationPerBird = 5f;
+
+    [Tooltip("Seconds before the bird makes its first chirp")]
+    [Range(0f, 20f)]
+    public float chirpDelay = 10f;
 
     private bool triggered = false;
 
     private void OnTriggerEnter(Collider other)
     {
-        // If already triggered and single-use, do nothing
         if (triggered && singleUse) return;
 
-        // Only respond to the player
         if (other.CompareTag("Player"))
         {
             triggered = true;
@@ -27,10 +32,17 @@ public class BirdTrigger : MonoBehaviour
                 return;
             }
 
-            // Spawn the specified number of birds
             for (int i = 0; i < birdsToSpawn; i++)
             {
-                birdSpawner.SpawnBird();
+                GameObject birdObj = birdSpawner.SpawnBird(spawnDistanceVariationPerBird);
+                if (birdObj != null)
+                {
+                    BirdFly fly = birdObj.GetComponent<BirdFly>();
+                    if (fly != null)
+                    {
+                        fly.StartSoundAfterDelay(chirpDelay);
+                    }
+                }
             }
 
             Debug.Log($"BirdTrigger: Spawned {birdsToSpawn} birds for {other.name}");
