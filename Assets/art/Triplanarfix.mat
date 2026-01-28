@@ -19,7 +19,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
+  m_LockedProperties: _HeightBlend
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -29,6 +29,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DayTex:
+        m_Texture: {fileID: 2800000, guid: f9ed4d33ce22b9141a2a57a20da93c44, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -48,11 +52,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FlatTex1:
-        m_Texture: {fileID: 2800000, guid: 02113d51372d3284cbced26597664b5d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 1b728e9578de2f3489eb93098e06fad6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FlatTex2:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 1b728e9578de2f3489eb93098e06fad6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FlatTex3:
@@ -67,6 +71,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NightTex:
+        m_Texture: {fileID: 2800000, guid: 0b81e3c80944a234f991d891dd983dea, type: 3}
+        m_Scale: {x: 0, y: 0}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -79,8 +87,16 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SteepDayTex:
+        m_Texture: {fileID: 2800000, guid: 02113d51372d3284cbced26597664b5d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SteepNightTex:
+        m_Texture: {fileID: 2800000, guid: ea08bb2e255a3c94da313848c5b108b0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SteepTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 02113d51372d3284cbced26597664b5d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -99,7 +115,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _BendAmount: 0
+    - _BendAmount: 0.00002860644
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
@@ -107,6 +123,7 @@ Material:
     - _ClearCoatSmoothness: 0
     - _Cull: 2
     - _Cutoff: 0.5
+    - _DayTiling: 1
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
@@ -115,25 +132,28 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _Height1: 10
-    - _Height2: 20
-    - _HeightBlend: 2
+    - _Height1: 168.6
+    - _Height2: 124.7
+    - _HeightBlend: 20
     - _Invert: 1
     - _Metallic: 0
+    - _NightTiling: 0.09
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _SlopeBlend: 0.1
-    - _SlopeThreshold: 0.5
+    - _SlopeBlend: 0.221
+    - _SlopeThreshold: 0.849
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
+    - _SteepDayTiling: -0.05
+    - _SteepNightTiling: -0.05
     - _Surface: 0
-    - _Tiling: 1
-    - _TriplanarBlend: 4
+    - _Tiling: 0.014
+    - _TriplanarBlend: 1
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:

@@ -20,13 +20,13 @@ public class BillboardBend : MonoBehaviour
 
         // Calculate horizontal distance from camera
         Vector3 camPos = cameraTransform.position;
-        float dx = originalPosition.x - camPos.x;
-        float dz = originalPosition.z - camPos.z;
+        float dx = transform.position.x - camPos.x; // use current X
+        float dz = transform.position.z - camPos.z; // use current Z
         float distSq = dx * dx + dz * dz;
 
-        // Apply bend
-        Vector3 newPos = originalPosition;
-        newPos.y -= distSq * bendAmount;
+        // Apply bend only to Y-axis
+        Vector3 newPos = transform.position;
+        newPos.y = originalPosition.y - distSq * bendAmount; // keep X/Z free for other movement
         transform.position = newPos;
     }
 }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Linq;
 
@@ -7,23 +7,25 @@ public class NightModeToggle : MonoBehaviour
     [Header("Tag of objects to invert")]
     public string invertTag = "Invertible";
 
-    [Header("Transition time in seconds")]
+    [Header("Transition time (seconds)")]
     public float transitionTime = 5f;
 
-    [Header("Star particle systems to invert")]
-    public ParticleSystem[] starSystems;
-
-    [Header("Camera settings")]
+    [Header("Camera")]
     public Camera mainCamera;
+    public Color daySky = Color.white;
+    public Color nightSky = Color.black;
+
+    [Header("Star particle systems")]
+    public ParticleSystem[] starSystems;
 
     private SpriteRenderer[] invertibleSprites;
     private MeshRenderer[] invertibleMeshes;
     private Terrain[] invertibleTerrains;
 
-    private bool nightMode = false; // START IN DAY MODE
+    private bool nightMode = false;
     private Coroutine transitionCoroutine;
 
-    // Store original particle colors
+    // Original star colors (WHITE stars)
     private Color[] startStarColors;
 
     void Start()
@@ -31,7 +33,6 @@ public class NightModeToggle : MonoBehaviour
         if (mainCamera == null)
             mainCamera = Camera.main;
 
-        // Find all tagged objects
         GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(invertTag);
 
         invertibleSprites = taggedObjects
@@ -49,7 +50,7 @@ public class NightModeToggle : MonoBehaviour
             .Where(t => t != null)
             .ToArray();
 
-        // Store original particle colors
+        // Cache original (WHITE) star colors
         startStarColors = new Color[starSystems.Length];
         for (int i = 0; i < starSystems.Length; i++)
         {
@@ -60,33 +61,7 @@ public class NightModeToggle : MonoBehaviour
             }
         }
 
-        // ---- Set initial DAY visuals ----
-        float initialInvert = 0f; // fully day
-
-        foreach (var sr in invertibleSprites)
-            if (sr != null && sr.material != null && sr.material.HasProperty("_Invert"))
-                sr.material.SetFloat("_Invert", initialInvert);
-
-        foreach (var mr in invertibleMeshes)
-            if (mr != null && mr.material != null && mr.material.HasProperty("_Invert"))
-                mr.material.SetFloat("_Invert", initialInvert);
-
-        foreach (var terrain in invertibleTerrains)
-            if (terrain != null && terrain.materialTemplate != null && terrain.materialTemplate.HasProperty("_Invert"))
-                terrain.materialTemplate.SetFloat("_Invert", initialInvert);
-
-        if (mainCamera != null)
-            mainCamera.backgroundColor = Color.white; // day sky
-
-        for (int i = 0; i < starSystems.Length; i++)
-        {
-            if (starSystems[i] != null)
-            {
-                var main = starSystems[i].main;
-                // Stars contrast the sky: black for day
-                main.startColor = new Color(1f - startStarColors[i].r, 1f - startStarColors[i].g, 1f - startStarColors[i].b, startStarColors[i].a);
-            }
-        }
+        ApplyImmediate(false); // start in DAY
     }
 
     void Update()
@@ -98,86 +73,97 @@ public class NightModeToggle : MonoBehaviour
             if (transitionCoroutine != null)
                 StopCoroutine(transitionCoroutine);
 
-            transitionCoroutine = StartCoroutine(TransitionNightMode(nightMode));
+            transitionCoroutine = StartCoroutine(Transition(nightMode));
         }
     }
 
-    private IEnumerator TransitionNightMode(bool enable)
+    IEnumerator Transition(bool enableNight)
     {
-        float startValue = enable ? 0f : 1f;
-        float endValue = enable ? 1f : 0f;
         float elapsed = 0f;
 
-        Color startBg = enable ? Color.white : Color.black;
-        Color endBg = enable ? Color.black : Color.white;
+        float startInvert = enableNight ? 0f : 1f;
+        float endInvert = enableNight ? 1f : 0f;
+
+        Color startSky = enableNight ? daySky : nightSky;
+        Color endSky = enableNight ? nightSky : daySky;
 
         while (elapsed < transitionTime)
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / transitionTime);
-            float current = Mathf.Lerp(startValue, endValue, t);
 
-            // Update sprites
+            float invertValue = Mathf.Lerp(startInvert, endInvert, t);
+
             foreach (var sr in invertibleSprites)
-                if (sr != null && sr.material != null && sr.material.HasProperty("_Invert"))
-                    sr.material.SetFloat("_Invert", current);
+                if (sr != null && sr.material.HasProperty("_Invert"))
+                    sr.material.SetFloat("_Invert", invertValue);
 
-            // Update meshes
             foreach (var mr in invertibleMeshes)
-                if (mr != null && mr.material != null && mr.material.HasProperty("_Invert"))
-                    mr.material.SetFloat("_Invert", current);
+                if (mr != null && mr.material.HasProperty("_Invert"))
+                    mr.material.SetFloat("_Invert", invertValue);
 
-            // Update terrains
             foreach (var terrain in invertibleTerrains)
-                if (terrain != null && terrain.materialTemplate != null && terrain.materialTemplate.HasProperty("_Invert"))
-                    terrain.materialTemplate.SetFloat("_Invert", current);
+                if (terrain != null && terrain.materialTemplate != null &&
+                    terrain.materialTemplate.HasProperty("_Invert"))
+                    terrain.materialTemplate.SetFloat("_Invert", invertValue);
 
-            // Update camera background
             if (mainCamera != null)
-                mainCamera.backgroundColor = Color.Lerp(startBg, endBg, t);
+                mainCamera.backgroundColor = Color.Lerp(startSky, endSky, t);
 
-            // Gradually invert star colors
+            // ⭐ FIXED STAR LOGIC ⭐
             for (int i = 0; i < starSystems.Length; i++)
             {
-                if (starSystems[i] != null)
-                {
-                    var main = starSystems[i].main;
-                    Color original = startStarColors[i];
+                if (starSystems[i] == null) continue;
 
-                    main.startColor = Color.Lerp(
-                        new Color(1f - original.r, 1f - original.g, 1f - original.b, original.a), // day (inverted)
-                        original, // night (original)
-                        current
-                    );
-                }
+                var main = starSystems[i].main;
+
+                Color white = startStarColors[i];
+                Color black = new Color(0f, 0f, 0f, white.a);
+
+                // Day = BLACK stars
+                // Night = WHITE stars
+                Color from = enableNight ? black : white;
+                Color to = enableNight ? white : black;
+
+                main.startColor = Color.Lerp(from, to, t);
             }
 
             yield return null;
         }
 
-        // Final values
+        ApplyImmediate(enableNight);
+    }
+
+    void ApplyImmediate(bool enableNight)
+    {
+        float invertValue = enableNight ? 1f : 0f;
+
         foreach (var sr in invertibleSprites)
-            if (sr != null && sr.material != null && sr.material.HasProperty("_Invert"))
-                sr.material.SetFloat("_Invert", endValue);
+            if (sr != null && sr.material.HasProperty("_Invert"))
+                sr.material.SetFloat("_Invert", invertValue);
 
         foreach (var mr in invertibleMeshes)
-            if (mr != null && mr.material != null && mr.material.HasProperty("_Invert"))
-                mr.material.SetFloat("_Invert", endValue);
+            if (mr != null && mr.material.HasProperty("_Invert"))
+                mr.material.SetFloat("_Invert", invertValue);
 
         foreach (var terrain in invertibleTerrains)
-            if (terrain != null && terrain.materialTemplate != null && terrain.materialTemplate.HasProperty("_Invert"))
-                terrain.materialTemplate.SetFloat("_Invert", endValue);
+            if (terrain != null && terrain.materialTemplate != null &&
+                terrain.materialTemplate.HasProperty("_Invert"))
+                terrain.materialTemplate.SetFloat("_Invert", invertValue);
 
         if (mainCamera != null)
-            mainCamera.backgroundColor = endBg;
+            mainCamera.backgroundColor = enableNight ? nightSky : daySky;
 
+        // ⭐ LOCK FINAL STAR STATE ⭐
         for (int i = 0; i < starSystems.Length; i++)
         {
-            if (starSystems[i] != null)
-            {
-                var main = starSystems[i].main;
-                main.startColor = startStarColors[i]; // night
-            }
+            if (starSystems[i] == null) continue;
+
+            var main = starSystems[i].main;
+            Color white = startStarColors[i];
+            Color black = new Color(0f, 0f, 0f, white.a);
+
+            main.startColor = enableNight ? white : black;
         }
     }
 }
