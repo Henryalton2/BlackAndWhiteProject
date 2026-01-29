@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,6 +14,9 @@ public class PauseMenu : MonoBehaviour
         canvas = GetComponent<Canvas>();
         // Make sure canvas starts disabled
         canvas.enabled = false;
+
+        // Reset pause state when scene loads (in case we came back from menu)
+        Resume();
     }
 
     void Update()
@@ -54,7 +56,10 @@ public class PauseMenu : MonoBehaviour
 
     public void LoadMenu()
     {
+        // Unpause before loading menu scene
         Time.timeScale = 1f;
+        GameisPaused = false;
+
         SceneManager.LoadScene("Menu");
     }
 
