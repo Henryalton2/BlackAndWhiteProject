@@ -6,8 +6,8 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     public Camera playerCamera;
-    public float walkSpeed = 6f;
-    public float runSpeed = 12f;
+    public float walkSpeed = 3f;
+    public float runSpeed = 6f;
     public float jumpPower = 7f;
     public float gravity = 10f;
     public float lookSpeed = 2f;
@@ -20,20 +20,26 @@ public class PlayerMovement : MonoBehaviour
     public bool isWalking;
     public bool isRunningState;
     public bool isCrouching;
-
     static public bool dialogue = false;
 
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0;
     private CharacterController characterController;
-
     private bool canMove = true;
+
+    // Store the original speeds so we can restore them
+    private float originalWalkSpeed;
+    private float originalRunSpeed;
 
     void Start()
     {
         characterController = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // Cache the original speeds from Inspector values
+        originalWalkSpeed = walkSpeed;
+        originalRunSpeed = runSpeed;
     }
 
     private void FixedUpdate()
@@ -66,10 +72,26 @@ public class PlayerMovement : MonoBehaviour
             Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f ||
             Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f;
 
-        // Movement speeds
+        // Crouch logic - changes speeds
+        if (Input.GetKey(KeyCode.R) && canMove)
+        {
+            isCrouching = true;
+            characterController.height = crouchHeight;
+            walkSpeed = crouchSpeed;
+            runSpeed = crouchSpeed;
+        }
+        else
+        {
+            isCrouching = false;
+            characterController.height = defaultHeight;
+            // Restore original speeds instead of hardcoded values
+            walkSpeed = originalWalkSpeed;
+            runSpeed = originalRunSpeed;
+        }
+
+        // Movement speeds (uses current walkSpeed/runSpeed which may be crouch or normal)
         float curSpeedX = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Vertical") : 0;
         float curSpeedY = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0;
-
         float movementDirectionY = moveDirection.y;
         moveDirection = (forward * curSpeedX) + (right * curSpeedY);
 
@@ -82,22 +104,6 @@ public class PlayerMovement : MonoBehaviour
         // Gravity
         if (!characterController.isGrounded)
             moveDirection.y -= gravity * Time.deltaTime;
-
-        // Crouch
-        if (Input.GetKey(KeyCode.R) && canMove)
-        {
-            isCrouching = true;
-            characterController.height = crouchHeight;
-            walkSpeed = crouchSpeed;
-            runSpeed = crouchSpeed;
-        }
-        else
-        {
-            isCrouching = false;
-            characterController.height = defaultHeight;
-            walkSpeed = 6f;
-            runSpeed = 12f;
-        }
 
         // Movement states (AFTER crouch logic)
         isRunningState =
