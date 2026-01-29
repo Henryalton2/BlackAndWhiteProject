@@ -175,4 +175,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseSpeed: 9
   lifeTime: 30
-  soundDelay: 10
+  animationStartOffset: 1
+  minAnimSpeed: 0.9
+  maxAnimSpeed: 1.1
+  emitter: {fileID: -4484242926586446410}
+  minChirpInterval: 30
+  maxChirpInterval: 40
+  cancelRadius: 20

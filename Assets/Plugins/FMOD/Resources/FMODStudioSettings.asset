@@ -453,8 +453,8 @@ MonoBehaviour:
   switchSettingsMigration: 1
   HasSourceProject: 1
   HasPlatforms: 1
-  sourceProjectPath: ../../../Black+white assets/DancingStars/DancingStars.fspro
-  sourceBankPath: ../../../Black+white assets/DancingStars/Build
+  sourceProjectPath: DancingStars/DancingStars.fspro
+  sourceBankPath: DancingStars/Build
   sourceBankPathUnformatted: 
   BankRefreshCooldown: 5
   ShowBankRefreshWindow: 1
