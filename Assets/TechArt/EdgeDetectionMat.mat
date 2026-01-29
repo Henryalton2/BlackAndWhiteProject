@@ -40,7 +40,7 @@ Material:
     - _DecalMeshBiasType: 0
     - _DecalMeshDepthBias: 0
     - _DecalMeshViewBias: 0
-    - _DepthLine: 0.06
+    - _DepthLine: 0.01
     - _DepthlineBias: 1
     - _DrawOrder: 0
     m_Colors:
