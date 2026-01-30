@@ -18,7 +18,7 @@ public class TriggerPlaySound : MonoBehaviour
             // Play the FMOD event at the player's position
             RuntimeManager.PlayOneShot(fmodEvent, other.transform.position);
 
-            Debug.Log("Played FMOD event: " + fmodEvent.Path);
+            Debug.Log("Played FMOD event: " + fmodEvent);
         }
     }
 }

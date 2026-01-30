@@ -65,10 +65,10 @@ public class InteractableNPC : MonoBehaviour
         float distance = Vector3.Distance(transform.position, player.position);
         isInRange = distance <= interactionDistance;
 
-        if (showDebug)
-        {
-            Debug.Log($"{npcName}: Distance = {distance:F2}, In Range = {isInRange}, Prompt UI = {promptUI != null}");
-        }
+        //if (showDebug)
+        //{
+        //    Debug.Log($"{npcName}: Distance = {distance:F2}, In Range = {isInRange}, Prompt UI = {promptUI != null}");
+        //}
 
         // Cancel dialogue if player walks away
         if (isDialogueActive && !isInRange)

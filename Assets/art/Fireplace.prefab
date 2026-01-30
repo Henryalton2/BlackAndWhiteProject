@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7545414976508970817}
   - component: {fileID: 198293082661810236}
   - component: {fileID: 5477900898330882006}
+  - component: {fileID: 3795506882524091228}
   m_Layer: 0
   m_Name: Fireplace
   m_TagString: Untagged
@@ -150,3 +151,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 6.96, y: 20.74, z: 2.1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3795506882524091228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1139448418684521955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e16327bc310836419d92f0574f63510, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  smokePrefab: {fileID: 4775263337042131724, guid: a90c9709dc835584ea25fe8235d7b7f1, type: 3}
+  riseSpeed: 3.85
+  windMultiplier: 0.1
+  turbulenceStrength: 2.31
+  lifetime: 17.53
+  scaleGrowSpeed: 0.08
+  spawnOffset: {x: 0.49, y: 0.51}
+  spawnInterval: 5.33
+  riseFadeDuration: 1
+  poolSize: 20
