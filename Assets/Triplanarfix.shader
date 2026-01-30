@@ -44,12 +44,14 @@
                     float3 normal : NORMAL;
                 };
 
-                struct v2f
-                {
-                    float4 vertex : SV_POSITION;
-                    float3 worldPos : TEXCOORD0;
-                    float3 worldNormal : TEXCOORD1;
-                };
+               struct v2f
+{
+    float4 vertex : SV_POSITION;
+    float3 worldPos : TEXCOORD0;      // bent
+    float3 samplePos : TEXCOORD1;     // unbent
+    float3 worldNormal : TEXCOORD2;
+};
+
 
                 sampler2D _DayTex, _NightTex;
                 sampler2D _SteepDayTex, _SteepNightTex;
@@ -62,19 +64,23 @@
                 float _BendAmount;
                 float _Invert;
 
-                v2f vert(appdata v)
-                {
-                    v2f o;
-                    float4 worldPos = mul(unity_ObjectToWorld, v.vertex);
+               v2f vert(appdata v)
+{
+    v2f o;
 
-                    float2 offset = worldPos.xz - _WorldSpaceCameraPos.xz;
-                    worldPos.y -= dot(offset, offset) * _BendAmount;
+    float4 worldPos = mul(unity_ObjectToWorld, v.vertex);
+    o.samplePos = worldPos.xyz; // BEFORE bending
 
-                    o.vertex = mul(UNITY_MATRIX_VP, worldPos);
-                    o.worldPos = worldPos.xyz;
-                    o.worldNormal = UnityObjectToWorldNormal(v.normal);
-                    return o;
-                }
+    float2 offset = worldPos.xz - _WorldSpaceCameraPos.xz;
+    worldPos.y -= dot(offset, offset) * _BendAmount;
+
+    o.vertex = mul(UNITY_MATRIX_VP, worldPos);
+    o.worldPos = worldPos.xyz;
+    o.worldNormal = UnityObjectToWorldNormal(v.normal);
+
+    return o;
+}
+
 
                 fixed4 Triplanar(sampler2D tex, float3 p, float tiling, float3 blend)
                 {
@@ -101,11 +107,12 @@
                     float h3 = smoothstep(_Height2 - _HeightBlend, _Height2, height);
                     float heightMask = h1 + h2 + h3;
 
-                    fixed4 dayFlat = Triplanar(_DayTex, i.worldPos, _DayTiling, blend) * heightMask;
-                    fixed4 nightFlat = Triplanar(_NightTex, i.worldPos, _NightTiling, blend) * heightMask;
+                   fixed4 dayFlat = Triplanar(_DayTex, i.samplePos, _DayTiling, blend) * heightMask;
 
-                    fixed4 daySteep = Triplanar(_SteepDayTex, i.worldPos, _SteepDayTiling, blend);
-                    fixed4 nightSteep = Triplanar(_SteepNightTex, i.worldPos, _SteepNightTiling, blend);
+                    fixed4 nightFlat = Triplanar(_NightTex, i.samplePos, _NightTiling, blend) * heightMask;
+
+                    fixed4 daySteep = Triplanar(_SteepDayTex,i.samplePos, _SteepDayTiling, blend);
+                    fixed4 nightSteep = Triplanar(_SteepNightTex, i.samplePos, _SteepNightTiling, blend);
 
                     fixed4 dayCol = dayFlat * flatW + daySteep * steepW;
                     fixed4 nightCol = nightFlat * flatW + nightSteep * steepW;
