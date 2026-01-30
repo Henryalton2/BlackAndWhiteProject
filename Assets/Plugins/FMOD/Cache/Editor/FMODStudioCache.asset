@@ -15,7 +15,7 @@ MonoBehaviour:
   Path: DancingStars/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639049852186719411
+  lastModified: 639052276862233959
   FileSizes:
   - Name: Desktop
     Value: 1752
@@ -35,7 +35,7 @@ MonoBehaviour:
   Path: DancingStars/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639049852186684239
+  lastModified: 639052276862027137
   FileSizes:
   - Name: Desktop
     Value: 2388352
@@ -55,7 +55,7 @@ MonoBehaviour:
   Path: DancingStars/Build/Desktop/Music.bank
   Name: Music
   StudioPath: bank:/Music
-  lastModified: 639048893310880425
+  lastModified: 639052276862865743
   FileSizes:
   - Name: Desktop
     Value: 3483040
@@ -133,7 +133,7 @@ MonoBehaviour:
   Path: DancingStars/Build/Desktop/Bank A.bank
   Name: Bank A
   StudioPath: bank:/Bank A
-  lastModified: 639048017260555468
+  lastModified: 639052276861547743
   FileSizes:
   - Name: Desktop
     Value: 17472
@@ -250,7 +250,7 @@ MonoBehaviour:
   - {fileID: -7242065091551181241}
   StringsBanks:
   - {fileID: -7362519200595377023}
-  cacheTime: 639049873975205124
+  cacheTime: 639052276863426956
   cacheVersion: 131621
 --- !u!114 &537752071016676076
 MonoBehaviour:
@@ -403,7 +403,7 @@ MonoBehaviour:
   Path: DancingStars/Build/Desktop/SFX.bank
   Name: SFX
   StudioPath: bank:/SFX
-  lastModified: 639049873975205124
+  lastModified: 639052276863426956
   FileSizes:
   - Name: Desktop
     Value: 3605184
