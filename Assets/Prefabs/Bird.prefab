@@ -14,9 +14,10 @@ GameObject:
   - component: {fileID: 7977669657832717861}
   - component: {fileID: -4484242926586446410}
   - component: {fileID: 822893253111568012}
+  - component: {fileID: 8771296075162134732}
   m_Layer: 0
   m_Name: Bird
-  m_TagString: Untagged
+  m_TagString: Invertible
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -56,7 +57,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 7ba47080d7b545a49bf1dca13ac9656c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -182,3 +183,15 @@ MonoBehaviour:
   minChirpInterval: 30
   maxChirpInterval: 40
   cancelRadius: 20
+--- !u!114 &8771296075162134732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4689464063676768159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce6774e0f01e8104ca3dffc3b11f96f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

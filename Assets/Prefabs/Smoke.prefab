@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 6018025976189357082}
   - component: {fileID: 2935535649184726240}
   - component: {fileID: -652493889957349363}
+  - component: {fileID: -6965147944481205011}
   m_Layer: 0
   m_Name: Smoke
-  m_TagString: Untagged
+  m_TagString: Invertible
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -54,7 +55,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 7ba47080d7b545a49bf1dca13ac9656c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -100,7 +101,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   billboardType: 0
   useDistanceCheck: 0
-  billboardDistance: 50
+  billboardDistance: 5000
   transitionSpeed: 5
   playerTransform: {fileID: 0}
   showDebug: 0
@@ -119,3 +120,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce6774e0f01e8104ca3dffc3b11f96f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-6965147944481205011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4775263337042131724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c2e9625faa74054b981599260ecd0ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  riseSpeed: 50
+  resumeSmoothTime: 1
+  lifetime: 7.27
+  scaleGrowSpeed: 0
