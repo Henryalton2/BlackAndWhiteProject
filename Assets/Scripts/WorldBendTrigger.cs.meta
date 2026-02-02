@@ -4,7 +4,7 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - bendMaterial: {fileID: 2100000, guid: 38f17687ccf441644a810615f0691e31, type: 2}
+  - bendMaterial: {fileID: 2100000, guid: 64a47cfdc253665469bf1d9bc6945fb4, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
