@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 198293082661810236}
   - component: {fileID: 5477900898330882006}
   - component: {fileID: -7515137068005447905}
+  - component: {fileID: 8350422214718654587}
   m_Layer: 0
   m_Name: Fireplace
   m_TagString: Untagged
@@ -171,3 +172,34 @@ MonoBehaviour:
   spawnInterval: 3
   smokeSpawnOffset: {x: 0.63, y: 0.1}
   cloudSwayMultiplier: 0.98
+--- !u!114 &8350422214718654587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1139448418684521955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a6610d2e704f1648819acc8d7460285, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CollisionTag: 
+  EventReference:
+    Guid:
+      Data1: -183216495
+      Data2: 1221382484
+      Data3: -15692896
+      Data4: -1895970016
+    Path: event:/Fire
+  Event: 
+  EventPlayTrigger: 1
+  EventStopTrigger: 2
+  AllowFadeout: 1
+  TriggerOnce: 0
+  Preload: 0
+  NonRigidbodyVelocity: 0
+  Params: []
+  OverrideAttenuation: 0
+  OverrideMinDistance: 1
+  OverrideMaxDistance: 20

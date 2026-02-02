@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8235988578911820530}
   - component: {fileID: 2898595156901701697}
   - component: {fileID: 56974711504736723}
+  - component: {fileID: -7571681439926155045}
   m_Layer: 0
   m_Name: Tree_2
   m_TagString: Untagged
@@ -130,3 +131,34 @@ MonoBehaviour:
   lockX: 1
   lockY: 0
   lockZ: 0
+--- !u!114 &-7571681439926155045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7251940777803246497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a6610d2e704f1648819acc8d7460285, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CollisionTag: 
+  EventReference:
+    Guid:
+      Data1: -183216495
+      Data2: 1221382484
+      Data3: -15692896
+      Data4: -1895970016
+    Path: event:/Fire
+  Event: 
+  EventPlayTrigger: 1
+  EventStopTrigger: 2
+  AllowFadeout: 1
+  TriggerOnce: 0
+  Preload: 0
+  NonRigidbodyVelocity: 0
+  Params: []
+  OverrideAttenuation: 0
+  OverrideMinDistance: 1
+  OverrideMaxDistance: 20
