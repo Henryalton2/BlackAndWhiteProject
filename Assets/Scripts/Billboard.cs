@@ -5,7 +5,7 @@ public class Billboard : MonoBehaviour
     [SerializeField] private BillboardType billboardType;
 
     [Header("Distance Settings")]
-    [SerializeField] private bool useDistanceCheck = true;
+    public bool useDistanceCheck = true;
     [SerializeField] private float billboardDistance = 50f;
     [SerializeField] private float transitionSpeed = 5f;
     [SerializeField] private Transform playerTransform;

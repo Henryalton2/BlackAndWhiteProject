@@ -1,35 +1,42 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
-    public Camera playerCamera;
+    [Header("Movement")]
     public float walkSpeed = 3f;
     public float runSpeed = 6f;
     public float jumpPower = 7f;
     public float gravity = 10f;
-    public float lookSpeed = 2f;
-    public float lookXLimit = 45f;
-    public float defaultHeight = 2f;
     public float crouchHeight = 1f;
+    public float defaultHeight = 2f;
     public float crouchSpeed = 3f;
 
-    // Movement states (for audio / animation)
+    [Header("Look")]
+    public Camera playerCamera;
+    public float lookSpeed = 2f;
+    public float lookXLimit = 45f;
+
+    [Header("Cloud System")]
+    public CloudSystem cloudSystem; // Assign in Inspector
+
+    // Movement states
     public bool isWalking;
     public bool isRunningState;
     public bool isCrouching;
-    static public bool dialogue = false;
+    public static bool dialogue = false;
 
-    private Vector3 moveDirection = Vector3.zero;
-    private float rotationX = 0;
     private CharacterController characterController;
-    private bool canMove = true;
-
-    // Store the original speeds so we can restore them
+    private Vector3 moveDirection = Vector3.zero;
+    private float rotationX = 0f;
     private float originalWalkSpeed;
     private float originalRunSpeed;
+    private bool canMove = true;
+
+    // Cheat code tracking
+    private string typedBuffer = "";
+    private const string CHEAT_CODE = "colourmeimpressed";
 
     void Start()
     {
@@ -37,9 +44,18 @@ public class PlayerMovement : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // Cache the original speeds from Inspector values
         originalWalkSpeed = walkSpeed;
         originalRunSpeed = runSpeed;
+    }
+
+    void Update()
+    {
+
+        // Pause check
+        if (PauseMenu.GameisPaused) return;
+
+        HandleMovement();
+        HandleLook();
     }
 
     private void FixedUpdate()
@@ -56,23 +72,13 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void Update()
+    private void HandleMovement()
     {
-        // Don't allow any input when paused
-        if (PauseMenu.GameisPaused)
-            return;
-
         Vector3 forward = transform.TransformDirection(Vector3.forward);
         Vector3 right = transform.TransformDirection(Vector3.right);
-
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
 
-        // Input check FIRST
-        bool hasInput =
-            Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f ||
-            Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f;
-
-        // Crouch logic - changes speeds
+        // Crouch
         if (Input.GetKey(KeyCode.R) && canMove)
         {
             isCrouching = true;
@@ -84,51 +90,43 @@ public class PlayerMovement : MonoBehaviour
         {
             isCrouching = false;
             characterController.height = defaultHeight;
-            // Restore original speeds instead of hardcoded values
             walkSpeed = originalWalkSpeed;
             runSpeed = originalRunSpeed;
         }
 
-        // Movement speeds (uses current walkSpeed/runSpeed which may be crouch or normal)
-        float curSpeedX = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Vertical") : 0;
-        float curSpeedY = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0;
-        float movementDirectionY = moveDirection.y;
-        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+        // Movement input
+        float curSpeedX = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Vertical") : 0f;
+        float curSpeedY = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0f;
 
-        // Jump
+        // Jump & gravity
+        float movementY = moveDirection.y;
+        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
         if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
             moveDirection.y = jumpPower;
         else
-            moveDirection.y = movementDirectionY;
+            moveDirection.y = movementY;
 
-        // Gravity
         if (!characterController.isGrounded)
             moveDirection.y -= gravity * Time.deltaTime;
 
-        // Movement states (AFTER crouch logic)
-        isRunningState =
-            isRunning &&
-            hasInput &&
-            characterController.isGrounded &&
-            !isCrouching;
+        // Movement states
+        isRunningState = isRunning && characterController.isGrounded && !isCrouching &&
+                         (Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f);
 
-        isWalking =
-            characterController.isGrounded &&
-            hasInput &&
-            !isRunningState &&
-            !isCrouching &&
-            canMove;
+        isWalking = characterController.isGrounded && !isRunningState && !isCrouching &&
+                    (Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f);
 
-        // Move the character
+        // Move character
         characterController.Move(moveDirection * Time.deltaTime);
+    }
 
-        // Camera look
-        if (canMove)
-        {
-            rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
-            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-            playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
-            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
-        }
+    private void HandleLook()
+    {
+        if (!canMove) return;
+
+        rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
+        rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
+        playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
+        transform.rotation *= Quaternion.Euler(0f, Input.GetAxis("Mouse X") * lookSpeed, 0f);
     }
 }

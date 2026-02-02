@@ -33,22 +33,7 @@ public class NightModeToggle : MonoBehaviour
         if (mainCamera == null)
             mainCamera = Camera.main;
 
-        GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(invertTag);
-
-        invertibleSprites = taggedObjects
-            .Select(o => o.GetComponent<SpriteRenderer>())
-            .Where(sr => sr != null)
-            .ToArray();
-
-        invertibleMeshes = taggedObjects
-            .Select(o => o.GetComponent<MeshRenderer>())
-            .Where(mr => mr != null)
-            .ToArray();
-
-        invertibleTerrains = taggedObjects
-            .Select(o => o.GetComponent<Terrain>())
-            .Where(t => t != null)
-            .ToArray();
+        CacheInvertibles();
 
         // Cache original (WHITE) star colors
         startStarColors = new Color[starSystems.Length];
@@ -66,6 +51,9 @@ public class NightModeToggle : MonoBehaviour
 
     void Update()
     {
+        // Refresh invertible objects in case new clouds spawned
+        CacheInvertibles();
+
         if (Input.GetKeyDown(KeyCode.N))
         {
             nightMode = !nightMode;
@@ -77,10 +65,29 @@ public class NightModeToggle : MonoBehaviour
         }
     }
 
+    void CacheInvertibles()
+    {
+        GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(invertTag);
+
+        invertibleSprites = taggedObjects
+            .Select(o => o.GetComponent<SpriteRenderer>())
+            .Where(sr => sr != null)
+            .ToArray();
+
+        invertibleMeshes = taggedObjects
+            .Select(o => o.GetComponent<MeshRenderer>())
+            .Where(mr => mr != null)
+            .ToArray();
+
+        invertibleTerrains = taggedObjects
+            .Select(o => o.GetComponent<Terrain>())
+            .Where(t => t != null)
+            .ToArray();
+    }
+
     IEnumerator Transition(bool enableNight)
     {
         float elapsed = 0f;
-
         float startInvert = enableNight ? 0f : 1f;
         float endInvert = enableNight ? 1f : 0f;
 
@@ -90,9 +97,9 @@ public class NightModeToggle : MonoBehaviour
         while (elapsed < transitionTime)
         {
             elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / transitionTime);
+            float tVal = Mathf.Clamp01(elapsed / transitionTime); // renamed from 't'
 
-            float invertValue = Mathf.Lerp(startInvert, endInvert, t);
+            float invertValue = Mathf.Lerp(startInvert, endInvert, tVal);
 
             foreach (var sr in invertibleSprites)
                 if (sr != null && sr.material.HasProperty("_Invert"))
@@ -108,16 +115,16 @@ public class NightModeToggle : MonoBehaviour
                     terrain.materialTemplate.SetFloat("_Invert", invertValue);
 
             if (mainCamera != null)
-                mainCamera.backgroundColor = Color.Lerp(startSky, endSky, t);
+                mainCamera.backgroundColor = Color.Lerp(startSky, endSky, tVal);
 
             // ⭐ FIXED STAR LOGIC ⭐
-            for (int i = 0; i < starSystems.Length; i++)
+            for (int s = 0; s < starSystems.Length; s++)
             {
-                if (starSystems[i] == null) continue;
+                if (starSystems[s] == null) continue;
 
-                var main = starSystems[i].main;
+                var main = starSystems[s].main;
 
-                Color white = startStarColors[i];
+                Color white = startStarColors[s];
                 Color black = new Color(0f, 0f, 0f, white.a);
 
                 // Day = BLACK stars
@@ -125,7 +132,7 @@ public class NightModeToggle : MonoBehaviour
                 Color from = enableNight ? black : white;
                 Color to = enableNight ? white : black;
 
-                main.startColor = Color.Lerp(from, to, t);
+                main.startColor = Color.Lerp(from, to, tVal);
             }
 
             yield return null;
@@ -155,12 +162,12 @@ public class NightModeToggle : MonoBehaviour
             mainCamera.backgroundColor = enableNight ? nightSky : daySky;
 
         // ⭐ LOCK FINAL STAR STATE ⭐
-        for (int i = 0; i < starSystems.Length; i++)
+        for (int s = 0; s < starSystems.Length; s++)
         {
-            if (starSystems[i] == null) continue;
+            if (starSystems[s] == null) continue;
 
-            var main = starSystems[i].main;
-            Color white = startStarColors[i];
+            var main = starSystems[s].main;
+            Color white = startStarColors[s];
             Color black = new Color(0f, 0f, 0f, white.a);
 
             main.startColor = enableNight ? white : black;

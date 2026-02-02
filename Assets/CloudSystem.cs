@@ -1,10 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public class CloudSystem : MonoBehaviour
 {
-    [Header("Cloud Prefab")]
-    public GameObject cloudPrefab;
+    [Header("Cloud Prefabs")]
+    public GameObject whiteCloudPrefab;
+    public GameObject colorCloud1;
+    public GameObject colorCloud2;
+    public GameObject colorCloud3;
 
     [Header("Spawn Area")]
     public Vector3 spawnArea = new Vector3(100, 40, 100);
@@ -19,36 +22,40 @@ public class CloudSystem : MonoBehaviour
     public float spacingOffset = 3f;
 
     [Header("Edge Fade")]
-    [Tooltip("Distance from edge where clouds begin fading")]
     public float edgeFadeDistance = 15f;
 
-    private readonly List<GameObject> clouds = new();
-    private readonly List<float> cloudSpeeds = new();
-    private readonly List<SpriteRenderer> renderers = new();
+    private List<GameObject> clouds = new();
+    private List<float> speeds = new();
+    private bool usingWhite = true;
 
     void Start()
     {
-        if (!cloudPrefab)
-        {
-            Debug.LogError("Cloud prefab not assigned!");
-            return;
-        }
-
-        SpawnClouds();
+        SpawnSet(new GameObject[] { whiteCloudPrefab });
     }
 
     void Update()
     {
-        MoveClouds();
-        WrapClouds();
-        UpdateEdgeFade();
+        Move();
+        Wrap();
+        EdgeFade();
+
+        // Swap cloud sets
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            if (usingWhite)
+                SpawnSet(new GameObject[] { colorCloud1, colorCloud2, colorCloud3 });
+            else
+                SpawnSet(new GameObject[] { whiteCloudPrefab });
+
+            usingWhite = !usingWhite;
+        }
     }
 
-    void SpawnClouds()
+    // ================= SPAWNING =================
+
+    void SpawnSet(GameObject[] prefabs)
     {
-        clouds.Clear();
-        cloudSpeeds.Clear();
-        renderers.Clear();
+        ClearClouds();
 
         int countX = Mathf.FloorToInt(spawnArea.x / spacing);
         int countZ = Mathf.FloorToInt(spawnArea.z / spacing);
@@ -66,80 +73,90 @@ public class CloudSystem : MonoBehaviour
                     -half.z + spacing * 0.5f + z * spacing + Random.Range(-spacingOffset, spacingOffset)
                 );
 
-                GameObject cloud = Instantiate(cloudPrefab, pos, Quaternion.identity, transform);
+                GameObject prefab = prefabs[Random.Range(0, prefabs.Length)];
+                GameObject cloud = Instantiate(prefab, pos, Quaternion.identity, transform);
+                SetupCloud(cloud);
+
                 clouds.Add(cloud);
 
-                SpriteRenderer sr = cloud.GetComponent<SpriteRenderer>();
-                renderers.Add(sr);
-
-                float heightT = pos.y / spawnArea.y;
-                float speed = baseSpeed * Mathf.Lerp(speedVariation.x, speedVariation.y, heightT);
-                cloudSpeeds.Add(speed);
+                float h = pos.y / spawnArea.y;
+                speeds.Add(baseSpeed * Mathf.Lerp(speedVariation.x, speedVariation.y, h));
             }
         }
     }
 
-    void MoveClouds()
+    void SetupCloud(GameObject cloud)
+    {
+        SpriteRenderer sr = cloud.GetComponent<SpriteRenderer>();
+        if (!sr) return;
+
+        // 🔥 Ensure each cloud has its own material instance so invert is stable
+        sr.material = new Material(sr.material);
+
+        // Reset alpha to fully opaque
+        Color c = sr.color;
+        sr.color = new Color(c.r, c.g, c.b, 1f);
+    }
+
+    void ClearClouds()
+    {
+        foreach (var c in clouds)
+            if (c) Destroy(c);
+
+        clouds.Clear();
+        speeds.Clear();
+    }
+
+    // ================= MOVEMENT =================
+
+    void Move()
     {
         Vector3 dir = windDirection.normalized;
-
         for (int i = 0; i < clouds.Count; i++)
         {
             if (!clouds[i]) continue;
-            clouds[i].transform.position += dir * cloudSpeeds[i] * Time.deltaTime;
+            clouds[i].transform.position += dir * speeds[i] * Time.deltaTime;
         }
     }
 
-    void WrapClouds()
+    void Wrap()
     {
         Vector3 center = transform.position;
         Vector3 half = spawnArea * 0.5f;
 
-        for (int i = 0; i < clouds.Count; i++)
+        foreach (var c in clouds)
         {
-            if (!clouds[i]) continue;
-
-            Vector3 local = clouds[i].transform.position - center;
+            Vector3 local = c.transform.position - center;
 
             if (local.x > half.x) local.x -= spawnArea.x;
-            else if (local.x < -half.x) local.x += spawnArea.x;
-
+            if (local.x < -half.x) local.x += spawnArea.x;
             if (local.z > half.z) local.z -= spawnArea.z;
-            else if (local.z < -half.z) local.z += spawnArea.z;
+            if (local.z < -half.z) local.z += spawnArea.z;
 
-            clouds[i].transform.position = center + local;
+            c.transform.position = center + local;
         }
     }
 
-    void UpdateEdgeFade()
+    void EdgeFade()
     {
         Vector3 center = transform.position;
         Vector3 half = spawnArea * 0.5f;
 
-        for (int i = 0; i < clouds.Count; i++)
+        foreach (var c in clouds)
         {
-            if (!renderers[i]) continue;
+            var sr = c.GetComponent<SpriteRenderer>();
+            if (!sr) continue;
 
-            Vector3 local = clouds[i].transform.position - center;
+            Vector3 local = c.transform.position - center;
 
-            float distToEdgeX = half.x - Mathf.Abs(local.x);
-            float distToEdgeZ = half.z - Mathf.Abs(local.z);
+            float dx = half.x - Mathf.Abs(local.x);
+            float dz = half.z - Mathf.Abs(local.z);
+            float d = Mathf.Min(dx, dz);
 
-            float distToEdge = Mathf.Min(distToEdgeX, distToEdgeZ);
+            float alpha = Mathf.Clamp01(d / edgeFadeDistance);
 
-            float alpha = Mathf.Clamp01(distToEdge / edgeFadeDistance);
-
-            Color c = renderers[i].color;
-            c.a = alpha;
-            renderers[i].color = c;
+            Color col = sr.color;
+            sr.color = new Color(col.r, col.g, col.b, alpha);
         }
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = new Color(0, 1, 1, 0.15f);
-        Gizmos.DrawCube(transform.position + Vector3.up * spawnArea.y / 2f, spawnArea);
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireCube(transform.position + Vector3.up * spawnArea.y / 2f, spawnArea);
     }
 }
