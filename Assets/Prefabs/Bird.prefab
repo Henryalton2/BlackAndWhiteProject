@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 8771296075162134732}
   m_Layer: 0
   m_Name: Bird
-  m_TagString: Invertible
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -195,3 +195,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce6774e0f01e8104ca3dffc3b11f96f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isFireplace: 0
+  smokePrefab: {fileID: 0}
+  smokeRiseSpeed: 1
+  smokeGrowSpeed: 0.5
+  smokeLifetime: 5
+  spawnInterval: 1
+  smokeSpawnOffset: {x: 0.2, y: 0.2}
+  cloudSwayMultiplier: 0.1
