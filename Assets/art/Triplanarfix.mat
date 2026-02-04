@@ -115,7 +115,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _BendAmount: 0.0019999938
+    - _BendAmount: 0.0019999999
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1

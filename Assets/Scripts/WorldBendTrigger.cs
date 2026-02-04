@@ -24,6 +24,11 @@ public class WorldBendTrigger : MonoBehaviour
 
     void Start()
     {
+        if (terrain == null)
+            Debug.LogError("[WorldBendTrigger] Terrain is NULL");
+        else
+            Debug.Log($"[WorldBendTrigger] Found terrain: {terrain.name}");
+
         if (bendMaterial == null)
         {
             Debug.LogError($"WorldBendTrigger ({gameObject.name}): No material assigned!");
