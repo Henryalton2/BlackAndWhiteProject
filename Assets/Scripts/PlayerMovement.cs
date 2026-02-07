@@ -18,9 +18,6 @@ public class PlayerMovement : MonoBehaviour
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
-    [Header("Cloud System")]
-    public CloudSystem cloudSystem; // Assign in Inspector
-
     // Movement states
     public bool isWalking;
     public bool isRunningState;
@@ -34,10 +31,6 @@ public class PlayerMovement : MonoBehaviour
     private float originalRunSpeed;
     private bool canMove = true;
 
-    // Cheat code tracking
-    private string typedBuffer = "";
-    private const string CHEAT_CODE = "colourmeimpressed";
-
     void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -50,8 +43,6 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-
-        // Pause check
         if (PauseMenu.GameisPaused) return;
 
         HandleMovement();
@@ -101,6 +92,7 @@ public class PlayerMovement : MonoBehaviour
         // Jump & gravity
         float movementY = moveDirection.y;
         moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+
         if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
             moveDirection.y = jumpPower;
         else

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class CloudPlatformSpawner : MonoBehaviour
 {
     [Header("Cloud Settings")]
@@ -9,83 +10,81 @@ public class CloudPlatformSpawner : MonoBehaviour
     public float cloudLifetime = 5f;
     public float spawnOffsetY = -1.5f;
 
-    [Header("Limits")]
-    public int maxActiveClouds = 1;
-    public float spawnCooldown = 1.5f;
+    [Header("Cloud Limit")]
+    [Tooltip("Number of clouds the player can spawn before touching the ground")]
+    public int maxClouds = 1;
 
-    private bool canSpawn = true;
-    private List<GameObject> activeClouds = new List<GameObject>();
+    [Header("Ground Detection")]
+    [Tooltip("Drag the Terrain or ground object here")]
+    public Collider groundCollider;
+    public float groundCheckDistance = 0.2f; // distance to check below player
+
+    private int cloudsLeft; // counter for remaining clouds
     private CharacterController controller;
-
-    // 🔽 NEW: Airborne tracking
-    private bool hasLeftGround = false;
-    private float airTimer = 0f;
-    [SerializeField] private float minAirTime = 0.1f; // prevents edge-case spawns
+    private List<GameObject> activeClouds = new List<GameObject>();
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        cloudsLeft = maxClouds;
     }
 
     void Update()
     {
-        if (controller.isGrounded)
+        if (IsOnGround())
         {
-            hasLeftGround = false;
-            airTimer = 0f;
-            return;
+            cloudsLeft = maxClouds; // reset counter when touching ground
         }
 
-        // Player is airborne
-        airTimer += Time.deltaTime;
-        hasLeftGround = true;
-
-        // 🔽 Only allow cloud after being in air briefly
-        if (hasLeftGround && airTimer >= minAirTime && Input.GetButtonDown("Jump"))
+        // Only spawn cloud if airborne, jump pressed, and clouds left
+        if (!IsOnGround() && Input.GetButtonDown("Jump") && cloudsLeft > 0)
         {
-            TrySpawnCloud();
+            SpawnCloud();
         }
     }
 
-    void TrySpawnCloud()
+    bool IsOnGround()
     {
-        if (!canSpawn) return;
+        if (groundCollider == null) return false;
 
-        if (activeClouds.Count >= maxActiveClouds)
+        // Cast a short ray down from the bottom of the character controller
+        Vector3 rayStart = transform.position + Vector3.up * 0.1f; // slightly above feet
+        Ray ray = new Ray(rayStart, Vector3.down);
+        RaycastHit hit;
+
+        if (groundCollider.Raycast(ray, out hit, groundCheckDistance + 0.1f))
         {
-            Destroy(activeClouds[0]);
-            activeClouds.RemoveAt(0);
+            return true;
         }
 
-        Vector3 spawnPos = transform.position;
-        spawnPos.y += spawnOffsetY;
+        return false;
+    }
 
+    void SpawnCloud()
+    {
+        Vector3 spawnPos = transform.position + Vector3.up * spawnOffsetY;
         GameObject cloud = Instantiate(cloudPrefab, spawnPos, Quaternion.identity);
         activeClouds.Add(cloud);
 
-        StartCoroutine(CloudLifetimeRoutine(cloud));
-        StartCoroutine(SpawnCooldownRoutine());
+        cloudsLeft--; // reduce remaining clouds
+
+        StartCoroutine(DestroyCloudAfterTime(cloud));
     }
 
-    IEnumerator CloudLifetimeRoutine(GameObject cloud)
+    IEnumerator DestroyCloudAfterTime(GameObject cloud)
     {
         yield return new WaitForSeconds(cloudLifetime);
-
-        if (activeClouds.Contains(cloud))
+        if (cloud != null)
+        {
             activeClouds.Remove(cloud);
-
-        Destroy(cloud);
+            Destroy(cloud);
+        }
     }
 
-    IEnumerator SpawnCooldownRoutine()
-    {
-        canSpawn = false;
-        yield return new WaitForSeconds(spawnCooldown);
-        canSpawn = true;
-    }
-
+    // Optional: call this to permanently increase clouds the player can spawn
     public void IncreaseMaxClouds(int amount)
     {
-        maxActiveClouds += amount;
+        maxClouds += amount;
+        cloudsLeft += amount;
     }
 }
