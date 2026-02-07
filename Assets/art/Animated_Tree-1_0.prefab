@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4523346565029056352}
   - component: {fileID: 3711713678046848827}
-  - component: {fileID: 4036577385692488849}
   - component: {fileID: 6234848788779163741}
   - component: {fileID: 1157086093836264221}
   - component: {fileID: 9196573246265344474}
@@ -91,27 +90,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &4036577385692488849
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2559312860323911815}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 877d1695c11efb9449764458bbb325b4, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!136 &6234848788779163741
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -156,6 +134,10 @@ MonoBehaviour:
   lockX: 1
   lockY: 0
   lockZ: 0
+  enableDistantRefresh: 1
+  refreshInterval: 8
+  refreshDuration: 0.25
+  refreshChance: 0.25
 --- !u!114 &9196573246265344474
 MonoBehaviour:
   m_ObjectHideFlags: 0

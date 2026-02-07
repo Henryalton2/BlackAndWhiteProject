@@ -65,21 +65,21 @@ public class Billboard : MonoBehaviour
         bool isInRange = true;
 
         // 🔽 Distant refresh logic
-        if (enableDistantRefresh && Time.time >= nextRefreshTime)
-        {
-            nextRefreshTime = Time.time + refreshInterval;
+       // if (enableDistantRefresh && Time.time >= nextRefreshTime)
+        //{
+           // nextRefreshTime = Time.time + refreshInterval;
 
-            if (Random.value <= refreshChance)
-            {
-                forceBillboard = true;
-                refreshEndTime = Time.time + refreshDuration;
-            }
-        }
+           // if (Random.value <= refreshChance)
+           // {
+            //    forceBillboard = true;
+           //     refreshEndTime = Time.time + refreshDuration;
+           // }
+       // }A
 
-        if (forceBillboard && Time.time > refreshEndTime)
-        {
-            forceBillboard = false;
-        }
+        //if (forceBillboard && Time.time > refreshEndTime)
+        //{
+       //     forceBillboard = false;
+       // }
 
         // Distance check (unless forced)
         if (useDistanceCheck && checkTransform != null && !forceBillboard)

@@ -55,7 +55,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 7ba47080d7b545a49bf1dca13ac9656c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -108,6 +108,10 @@ MonoBehaviour:
   lockX: 0
   lockY: 0
   lockZ: 0
+  enableDistantRefresh: 1
+  refreshInterval: 8
+  refreshDuration: 0.25
+  refreshChance: 0.25
 --- !u!114 &2869375616674927117
 MonoBehaviour:
   m_ObjectHideFlags: 0

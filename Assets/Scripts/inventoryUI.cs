@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+
 public class SimpleInventoryUI : MonoBehaviour
 {
     [Header("Settings")]
@@ -79,6 +80,18 @@ public class SimpleInventoryUI : MonoBehaviour
         {
             isVisible = !isVisible;
             inventoryPanel.SetActive(isVisible);
+
+            // Lock/unlock cursor based on inventory state
+            if (isVisible)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
         }
     }
 
@@ -196,6 +209,12 @@ public class SimpleInventoryUI : MonoBehaviour
         }
 
         return slot;
+    }
+
+    // Public method to check if inventory is open
+    public bool IsInventoryOpen()
+    {
+        return isVisible;
     }
 
     private void OnDestroy()

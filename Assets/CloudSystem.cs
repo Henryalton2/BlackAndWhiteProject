@@ -28,8 +28,12 @@ public class CloudSystem : MonoBehaviour
     private List<float> speeds = new();
     private bool usingWhite = true;
 
+    // ⭐ Night mode reference (cached once)
+    private NightModeToggle nightToggle;
+
     void Start()
     {
+        nightToggle = FindObjectOfType<NightModeToggle>();
         SpawnSet(new GameObject[] { whiteCloudPrefab });
     }
 
@@ -96,12 +100,24 @@ public class CloudSystem : MonoBehaviour
         // Reset alpha to fully opaque
         Color c = sr.color;
         sr.color = new Color(c.r, c.g, c.b, 1f);
+
+        // ⭐ Register cloud with NightModeToggle
+        if (nightToggle != null)
+            nightToggle.RegisterObject(cloud);
     }
 
     void ClearClouds()
     {
         foreach (var c in clouds)
-            if (c) Destroy(c);
+        {
+            if (!c) continue;
+
+            // ⭐ Unregister before destroying
+            if (nightToggle != null)
+                nightToggle.UnregisterObject(c);
+
+            Destroy(c);
+        }
 
         clouds.Clear();
         speeds.Clear();
@@ -159,4 +175,16 @@ public class CloudSystem : MonoBehaviour
             sr.color = new Color(col.r, col.g, col.b, alpha);
         }
     }
+#if UNITY_EDITOR
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = new Color(0.5f, 0.8f, 1f, 1f); // light blue outline
+
+        Vector3 center = transform.position + Vector3.up * (spawnArea.y * 0.5f);
+        Vector3 size = spawnArea;
+
+        Gizmos.DrawWireCube(center, size);
+    }
+#endif
+
 }
