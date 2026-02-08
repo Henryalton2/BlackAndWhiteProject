@@ -216,8 +216,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35b38f34403576c4bb5a773f5d47d14d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  highResSprite: {fileID: 0}
+  highResSprite: {fileID: -1698430294, guid: 0ef5e864d71ff0a4c81e8733bfe4e0aa, type: 3}
   medResSprite: {fileID: 0}
   lowResSprite: {fileID: 0}
   medDistance: 20
-  lowDistance: 40
+  lowDistance: 200

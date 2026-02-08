@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -6741547052757140441, guid: 9e87e867922184847bbe56b7f0d1a89c, type: 3}
+      propertyPath: lowDistance
+      value: 200
+      objectReference: {fileID: 0}
     - target: {fileID: 2559312860323911815, guid: 9e87e867922184847bbe56b7f0d1a89c, type: 3}
       propertyPath: m_Name
       value: Animated_Tree-1_0 Variant

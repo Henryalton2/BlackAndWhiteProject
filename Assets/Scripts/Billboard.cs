@@ -64,22 +64,22 @@ public class Billboard : MonoBehaviour
         Transform checkTransform = playerTransform != null ? playerTransform : Camera.main.transform;
         bool isInRange = true;
 
-        // 🔽 Distant refresh logic
-       // if (enableDistantRefresh && Time.time >= nextRefreshTime)
-        //{
-           // nextRefreshTime = Time.time + refreshInterval;
+         //🔽 Distant refresh logic
+        if (enableDistantRefresh && Time.time >= nextRefreshTime)
+        {
+            nextRefreshTime = Time.time + refreshInterval;
 
-           // if (Random.value <= refreshChance)
-           // {
-            //    forceBillboard = true;
-           //     refreshEndTime = Time.time + refreshDuration;
-           // }
-       // }A
+            if (Random.value <= refreshChance)
+            {
+                forceBillboard = true;
+                refreshEndTime = Time.time + refreshDuration;
+            }
+        }
 
-        //if (forceBillboard && Time.time > refreshEndTime)
-        //{
-       //     forceBillboard = false;
-       // }
+        if (forceBillboard && Time.time > refreshEndTime)
+        {
+            forceBillboard = false;
+        }
 
         // Distance check (unless forced)
         if (useDistanceCheck && checkTransform != null && !forceBillboard)
