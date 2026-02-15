@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -18,14 +18,17 @@ public class PlayerMovement : MonoBehaviour
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
-    // Movement states
+    // 🔽 REQUIRED BY OTHER SYSTEMS (Audio, etc.)
     public bool isWalking;
     public bool isRunningState;
     public bool isCrouching;
+
     public static bool dialogue = false;
 
     private CharacterController characterController;
     private Vector3 moveDirection = Vector3.zero;
+    private Vector3 externalVelocity = Vector3.zero;
+
     private float rotationX = 0f;
     private float originalWalkSpeed;
     private float originalRunSpeed;
@@ -34,6 +37,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         characterController = GetComponent<CharacterController>();
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -65,9 +69,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        Vector3 forward = transform.TransformDirection(Vector3.forward);
-        Vector3 right = transform.TransformDirection(Vector3.right);
-        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        Vector3 forward = transform.forward;
+        Vector3 right = transform.right;
+        bool isRunningInput = Input.GetKey(KeyCode.LeftShift);
 
         // Crouch
         if (Input.GetKey(KeyCode.R) && canMove)
@@ -85,31 +89,33 @@ public class PlayerMovement : MonoBehaviour
             runSpeed = originalRunSpeed;
         }
 
-        // Movement input
-        float curSpeedX = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Vertical") : 0f;
-        float curSpeedY = canMove ? (isRunning ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0f;
+        float curSpeedX = canMove ? (isRunningInput ? runSpeed : walkSpeed) * Input.GetAxis("Vertical") : 0f;
+        float curSpeedZ = canMove ? (isRunningInput ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0f;
 
-        // Jump & gravity
         float movementY = moveDirection.y;
-        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
 
-        if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
-            moveDirection.y = jumpPower;
-        else
-            moveDirection.y = movementY;
+        moveDirection = (forward * curSpeedX) + (right * curSpeedZ);
 
-        if (!characterController.isGrounded)
-            moveDirection.y -= gravity * Time.deltaTime;
+        if (characterController.isGrounded)
+        {
+            if (Input.GetButtonDown("Jump") && canMove)
+                movementY = jumpPower;
+        }
 
-        // Movement states
-        isRunningState = isRunning && characterController.isGrounded && !isCrouching &&
-                         (Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f);
+        movementY -= gravity * Time.deltaTime;
+        moveDirection.y = movementY;
 
-        isWalking = characterController.isGrounded && !isRunningState && !isCrouching &&
-                    (Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f);
+        // Apply external forces (cloud bounce)
+        moveDirection += externalVelocity;
+        externalVelocity = Vector3.Lerp(externalVelocity, Vector3.zero, Time.deltaTime * 10f);
 
-        // Move character
         characterController.Move(moveDirection * Time.deltaTime);
+
+        // 🔽 State flags (AudioManager relies on these)
+        bool hasMoveInput = Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f;
+
+        isRunningState = characterController.isGrounded && isRunningInput && !isCrouching && hasMoveInput;
+        isWalking = characterController.isGrounded && !isRunningState && !isCrouching && hasMoveInput;
     }
 
     private void HandleLook()
@@ -118,7 +124,18 @@ public class PlayerMovement : MonoBehaviour
 
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
+
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
         transform.rotation *= Quaternion.Euler(0f, Input.GetAxis("Mouse X") * lookSpeed, 0f);
+    }
+
+    // 🔽 Used by CloudPlatformSpawner
+    public void ApplyExternalVelocity(Vector3 velocity)
+    {
+        externalVelocity += velocity;
+    }
+    public void AddBoost(Vector3 boost)
+    {
+        moveDirection += boost;
     }
 }
