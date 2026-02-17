@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="ParameterPreset" id="{d92217e5-6210-4fdb-ab9f-1f2e1b6481fa}">
 		<property name="name">
 			<value>Terrain</value>

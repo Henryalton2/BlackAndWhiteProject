@@ -46,14 +46,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FootstepEvent:
     Guid:
-      Data1: 411609887
-      Data2: 1293340078
-      Data3: 713202600
-      Data4: -1763034067
+      Data1: 1813321491
+      Data2: 1127744329
+      Data3: -780189300
+      Data4: 1405586522
     Path: event:/Footsteps
   rate: 1
   player: {fileID: 0}
-  controller: {fileID: 0}
   MusicEvent:
     Guid:
       Data1: -1132636726
@@ -63,9 +62,10 @@ MonoBehaviour:
     Path: event:/Violin1_2d
   AtmosphereEvent:
     Guid:
-      Data1: -522078575
-      Data2: 1198848302
-      Data3: -1885429615
-      Data4: 1769777122
+      Data1: -1409202976
+      Data2: 1190949220
+      Data3: -1684836194
+      Data4: -783423752
     Path: event:/Atmosphere_2D
+  atmosphereVolume: 1
   musicLevel: 1

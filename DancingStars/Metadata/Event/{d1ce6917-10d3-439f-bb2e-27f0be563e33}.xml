@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{d1ce6917-10d3-439f-bb2e-27f0be563e33}">
 		<property name="name">
 			<value>Atmosphere</value>
@@ -69,8 +69,8 @@
 	</object>
 	<object class="Timeline" id="{d564c0f5-0ffa-4f4d-a36e-50e121a110c7}">
 		<relationship name="modules">
-			<destination>{72d65767-63fe-4a86-9382-8854567f8003}</destination>
 			<destination>{242743a6-9e7a-437a-9d30-df6a454734d6}</destination>
+			<destination>{72d65767-63fe-4a86-9382-8854567f8003}</destination>
 		</relationship>
 		<relationship name="markers">
 			<destination>{37e08819-0e1e-42f8-a97b-d08a2162f53f}</destination>

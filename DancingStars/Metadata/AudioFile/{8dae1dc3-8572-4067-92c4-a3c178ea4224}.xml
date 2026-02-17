@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="AudioFile" id="{8dae1dc3-8572-4067-92c4-a3c178ea4224}">
 		<property name="assetPath">
 			<value>footsteps-walking-in-forest-tractor-in-background-1-34409.mp3</value>

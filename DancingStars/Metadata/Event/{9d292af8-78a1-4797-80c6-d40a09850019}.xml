@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{9d292af8-78a1-4797-80c6-d40a09850019}">
 		<property name="name">
 			<value>Celeste</value>
@@ -8,7 +8,7 @@
 			<value>2</value>
 		</property>
 		<relationship name="folder">
-			<destination>{e23872a9-26c7-42fb-bab3-de5696fadc46}</destination>
+			<destination>{176095dc-adfd-4091-b58c-fbac3d1f6022}</destination>
 		</relationship>
 		<relationship name="mixer">
 			<destination>{5b27399e-16ed-4d15-92f5-f9a20cec9fc0}</destination>

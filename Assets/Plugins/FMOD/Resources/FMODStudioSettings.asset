@@ -453,8 +453,8 @@ MonoBehaviour:
   switchSettingsMigration: 1
   HasSourceProject: 1
   HasPlatforms: 1
-  sourceProjectPath: DancingStars/DancingStars.fspro
-  sourceBankPath: DancingStars/Build
+  sourceProjectPath: BlackWhiteProjAudio/BlackWhiteProjAudio.fspro
+  sourceBankPath: BlackWhiteProjAudio/Build
   sourceBankPathUnformatted: 
   BankRefreshCooldown: 5
   ShowBankRefreshWindow: 1
@@ -477,10 +477,7 @@ MonoBehaviour:
   Plugins: []
   MasterBanks:
   - Master
-  Banks:
-  - Bank A
-  - Music
-  - SFX
+  Banks: []
   BanksToLoad: []
   LiveUpdatePort: 9264
   EnableMemoryTracking: 0

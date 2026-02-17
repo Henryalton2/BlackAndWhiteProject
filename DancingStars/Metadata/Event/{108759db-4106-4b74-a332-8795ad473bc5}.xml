@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{108759db-4106-4b74-a332-8795ad473bc5}">
 		<property name="name">
 			<value>Stars</value>
@@ -8,7 +8,7 @@
 			<value>1</value>
 		</property>
 		<relationship name="folder">
-			<destination>{e23872a9-26c7-42fb-bab3-de5696fadc46}</destination>
+			<destination>{176095dc-adfd-4091-b58c-fbac3d1f6022}</destination>
 		</relationship>
 		<relationship name="mixer">
 			<destination>{6cbbd384-6588-4571-b2a3-8aa79f2fc6d6}</destination>

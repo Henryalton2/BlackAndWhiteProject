@@ -131,6 +131,10 @@ MonoBehaviour:
   lockX: 0
   lockY: 0
   lockZ: 0
+  enableDistantRefresh: 1
+  refreshInterval: 8
+  refreshDuration: 0.25
+  refreshChance: 0.25
 --- !u!114 &-4484242926586446410
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,10 +150,10 @@ MonoBehaviour:
   CollisionTag: 
   EventReference:
     Guid:
-      Data1: 1492142224
-      Data2: 1268468052
-      Data3: -1070764920
-      Data4: 2022260015
+      Data1: -1168141771
+      Data2: 1207657048
+      Data3: -1354400853
+      Data4: -367047336
     Path: event:/LoonCall
   Event: 
   EventPlayTrigger: 0

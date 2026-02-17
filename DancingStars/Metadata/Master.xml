@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="MixerMaster" id="{6664e923-1c30-4018-943c-b124eae26f9e}">
 		<property name="name">
 			<value>Master Bus</value>

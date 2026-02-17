@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="AudioFile" id="{ddd8d82f-55b9-4f1c-9bd3-aab1f051bd0e}">
 		<property name="assetPath">
 			<value>leaves-rustling-236742.mp3</value>

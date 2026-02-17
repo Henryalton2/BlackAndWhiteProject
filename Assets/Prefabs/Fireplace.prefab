@@ -131,6 +131,10 @@ MonoBehaviour:
   lockX: 1
   lockY: 0
   lockZ: 0
+  enableDistantRefresh: 1
+  refreshInterval: 8
+  refreshDuration: 0.25
+  refreshChance: 0.25
 --- !u!65 &5477900898330882006
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -187,10 +191,10 @@ MonoBehaviour:
   CollisionTag: 
   EventReference:
     Guid:
-      Data1: -183216495
-      Data2: 1221382484
-      Data3: -15692896
-      Data4: -1895970016
+      Data1: 1932922921
+      Data2: 1124594603
+      Data3: -1567636092
+      Data4: -1094984767
     Path: event:/Fire
   Event: 
   EventPlayTrigger: 1

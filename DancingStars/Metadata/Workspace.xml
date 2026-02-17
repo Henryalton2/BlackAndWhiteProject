@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="Workspace" id="{5c9044ac-533a-48a3-b7d8-d6425ae347eb}">
 		<property name="builtBanksOutputDirectory">
 			<value>../Assets/StreamingAssets</value>

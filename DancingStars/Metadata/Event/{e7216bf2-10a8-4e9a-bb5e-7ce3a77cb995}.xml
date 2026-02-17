@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{e7216bf2-10a8-4e9a-bb5e-7ce3a77cb995}">
 		<property name="name">
 			<value>Violin 2</value>
@@ -8,7 +8,7 @@
 			<value>2</value>
 		</property>
 		<relationship name="folder">
-			<destination>{e23872a9-26c7-42fb-bab3-de5696fadc46}</destination>
+			<destination>{176095dc-adfd-4091-b58c-fbac3d1f6022}</destination>
 		</relationship>
 		<relationship name="mixer">
 			<destination>{791de9a7-09c0-4f2b-9503-b08b4f0cf79a}</destination>

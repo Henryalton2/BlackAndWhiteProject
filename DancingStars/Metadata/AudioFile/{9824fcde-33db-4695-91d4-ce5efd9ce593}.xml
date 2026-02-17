@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="AudioFile" id="{9824fcde-33db-4695-91d4-ce5efd9ce593}">
 		<property name="assetPath">
 			<value>a-gentle-breeze-wind-4-14681.mp3</value>

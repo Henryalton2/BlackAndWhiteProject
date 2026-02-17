@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Collider))]
 public class WorldBendTrigger : MonoBehaviour
@@ -7,8 +8,11 @@ public class WorldBendTrigger : MonoBehaviour
     public Material bendMaterial;
 
     [Header("Bend Control")]
-    public float targetBend = 0.0015f;   // bend when inside trigger
+    public float targetBend = 0.0015f;
     public float blendSpeed = 2f;
+
+    [Header("Objects Enabled Inside Bend")]
+    public List<GameObject> bendObjects = new List<GameObject>();
 
     // Global bend value for trees
     public static float CurrentBend;
@@ -19,15 +23,11 @@ public class WorldBendTrigger : MonoBehaviour
     private Terrain terrain;
     private float originalDetailDistance = -1f;
 
-    // Track the active trigger
     private static WorldBendTrigger activeTrigger;
 
     void Start()
     {
-        if (terrain == null)
-            Debug.LogError("[WorldBendTrigger] Terrain is NULL");
-        else
-            Debug.Log($"[WorldBendTrigger] Found terrain: {terrain.name}");
+        terrain = FindObjectOfType<Terrain>();
 
         if (bendMaterial == null)
         {
@@ -39,22 +39,19 @@ public class WorldBendTrigger : MonoBehaviour
         CurrentBend = 0f;
         bendMaterial.SetFloat("_BendAmount", currentBend);
 
-        terrain = FindObjectOfType<Terrain>();
         if (terrain != null)
             originalDetailDistance = terrain.detailObjectDistance;
 
-        // Ensure collider is trigger
         Collider col = GetComponent<Collider>();
         if (!col.isTrigger)
-        {
-            Debug.LogWarning($"WorldBendTrigger ({gameObject.name}): Collider is not marked as Trigger! Setting it automatically.");
             col.isTrigger = true;
-        }
+
+        // Ensure objects start disabled
+        SetBendObjectsActive(false);
     }
 
     void Update()
     {
-        // If this trigger is active, lerp toward its target
         if (activeTrigger == this)
         {
             float target = playerInside ? targetBend : 0f;
@@ -65,18 +62,24 @@ public class WorldBendTrigger : MonoBehaviour
             if (terrain != null)
             {
                 float targetDistance = playerInside ? 15f : originalDetailDistance;
-                terrain.detailObjectDistance = Mathf.Lerp(terrain.detailObjectDistance, targetDistance, Time.deltaTime * blendSpeed);
+                terrain.detailObjectDistance =
+                    Mathf.Lerp(terrain.detailObjectDistance, targetDistance, Time.deltaTime * blendSpeed);
             }
+
+            SetBendObjectsActive(playerInside);
         }
-        // No active trigger → reset bend to zero
         else if (activeTrigger == null && CurrentBend > 0f)
         {
             CurrentBend = Mathf.Lerp(CurrentBend, 0f, Time.deltaTime * blendSpeed);
+
             if (bendMaterial != null)
                 bendMaterial.SetFloat("_BendAmount", CurrentBend);
 
             if (terrain != null)
-                terrain.detailObjectDistance = Mathf.Lerp(terrain.detailObjectDistance, originalDetailDistance, Time.deltaTime * blendSpeed);
+                terrain.detailObjectDistance =
+                    Mathf.Lerp(terrain.detailObjectDistance, originalDetailDistance, Time.deltaTime * blendSpeed);
+
+            SetBendObjectsActive(false);
         }
     }
 
@@ -86,7 +89,6 @@ public class WorldBendTrigger : MonoBehaviour
         {
             playerInside = true;
             activeTrigger = this;
-            Debug.Log($"[WorldBendTrigger] Entered trigger '{gameObject.name}', targetBend = {targetBend}");
         }
     }
 
@@ -96,11 +98,17 @@ public class WorldBendTrigger : MonoBehaviour
         {
             playerInside = false;
 
-            // If this was the active trigger, clear it
             if (activeTrigger == this)
                 activeTrigger = null;
+        }
+    }
 
-            Debug.Log($"[WorldBendTrigger] Exited trigger '{gameObject.name}'");
+    private void SetBendObjectsActive(bool state)
+    {
+        foreach (GameObject obj in bendObjects)
+        {
+            if (obj != null)
+                obj.SetActive(state);
         }
     }
 }

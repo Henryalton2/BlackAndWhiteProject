@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="AudioFile" id="{6d57ede8-899b-4fc9-ac63-3b388f6dbf96}">
 		<property name="assetPath">
 			<value>fire-sound-334130.mp3</value>

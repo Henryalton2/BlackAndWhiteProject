@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.03.00">
 	<object class="AudioFile" id="{bdd45ac3-dbb6-42f7-98b1-d8031ff04cae}">
 		<property name="assetPath">
 			<value>leaves-rustling-236743 - Trimmed.wav</value>
