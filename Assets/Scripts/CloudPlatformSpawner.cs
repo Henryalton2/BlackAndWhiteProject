@@ -16,17 +16,19 @@ public class CloudPlatformSpawner : MonoBehaviour
 
     [Header("Ground Detection")]
     [Tooltip("Drag the Terrain or ground object here")]
-    public Collider groundCollider;
+    public Collider terrainCollider;
     public float groundCheckDistance = 0.2f;
 
     [Header("Bounce Settings")]
     public float verticalBoost = 5f;
-    public float horizontalBoost = 3f;
+
+    [Header("Cloud Layer")]
+    public LayerMask cloudLayer; // Assign your Cloud prefab layer
 
     private int cloudsLeft;
     private CharacterController controller;
-    private List<GameObject> activeClouds = new List<GameObject>();
     private PlayerMovement playerMovement;
+    private List<GameObject> activeClouds = new List<GameObject>();
 
     void Start()
     {
@@ -37,27 +39,32 @@ public class CloudPlatformSpawner : MonoBehaviour
 
     void Update()
     {
-        if (IsOnGround())
+        // Reset clouds only when touching terrain
+        if (IsTouchingTerrain())
         {
-            cloudsLeft = maxClouds; // reset counter when touching ground
+            if (cloudsLeft != maxClouds)
+            {
+                cloudsLeft = maxClouds;
+                Debug.Log("[CloudSpawner] Reset cloudsLeft because touching terrain.");
+            }
         }
 
-        // Spawn cloud only if airborne, jump pressed, and clouds left
-        if (!IsOnGround() && Input.GetButtonDown("Jump") && cloudsLeft > 0)
+        // Only spawn cloud if player is airborne (not touching terrain or cloud)
+        if (!IsTouchingGroundOrCloud() && Input.GetButtonDown("Jump") && cloudsLeft > 0)
         {
-            SpawnCloudAndBounce();
+            SpawnCloud();
         }
     }
 
-    bool IsOnGround()
+    bool IsTouchingTerrain()
     {
-        if (groundCollider == null) return false;
+        if (terrainCollider == null) return false;
 
         Vector3 rayStart = transform.position + Vector3.up * 0.1f;
         Ray ray = new Ray(rayStart, Vector3.down);
         RaycastHit hit;
 
-        if (groundCollider.Raycast(ray, out hit, groundCheckDistance))
+        if (terrainCollider.Raycast(ray, out hit, groundCheckDistance))
         {
             return true;
         }
@@ -65,28 +72,39 @@ public class CloudPlatformSpawner : MonoBehaviour
         return false;
     }
 
-    void SpawnCloudAndBounce()
+    bool IsTouchingGroundOrCloud()
     {
-        // Spawn cloud under player
+        Vector3 rayStart = transform.position + Vector3.up * 0.1f;
+        Ray ray = new Ray(rayStart, Vector3.down);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, groundCheckDistance))
+        {
+            // Grounded on terrain or a cloud platform
+            if (hit.collider == terrainCollider || ((1 << hit.collider.gameObject.layer) & cloudLayer) != 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void SpawnCloud()
+    {
         Vector3 spawnPos = transform.position + Vector3.up * spawnOffsetY;
         GameObject cloud = Instantiate(cloudPrefab, spawnPos, Quaternion.identity);
         activeClouds.Add(cloud);
 
         cloudsLeft--;
+        Debug.Log("[CloudSpawner] Spawned cloud. Clouds left: " + cloudsLeft);
 
         StartCoroutine(DestroyCloudAfterTime(cloud));
 
-        // Calculate directional boost
-        Vector3 inputDir = new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
-        Vector3 boostDir = transform.TransformDirection(inputDir.normalized) * horizontalBoost;
-
-        // Always add vertical boost
-        boostDir.y = verticalBoost;
-
-        // Apply boost safely through PlayerMovement
+        // Apply vertical boost only
         if (playerMovement != null)
         {
-            playerMovement.AddBoost(boostDir);
+            playerMovement.AddBoost(new Vector3(0f, verticalBoost, 0f));
         }
     }
 
@@ -100,7 +118,6 @@ public class CloudPlatformSpawner : MonoBehaviour
         }
     }
 
-    // Optional: permanently increase clouds the player can spawn
     public void IncreaseMaxClouds(int amount)
     {
         maxClouds += amount;
