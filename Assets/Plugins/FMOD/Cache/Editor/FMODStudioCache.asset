@@ -15,10 +15,10 @@ MonoBehaviour:
   Path: BlackWhiteProjAudio/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639069584155839341
+  lastModified: 639070559215313375
   FileSizes:
   - Name: Desktop
-    Value: 5663712
+    Value: 5223072
   Exists: 1
 --- !u!114 &-8190422224823765870
 MonoBehaviour:
@@ -44,6 +44,33 @@ MonoBehaviour:
   IsGlobal: 0
   Labels: []
   Exists: 1
+--- !u!114 &-7876272004224528703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Chirp
+  m_EditorClassIdentifier: 
+  Path: event:/Chirp
+  Guid:
+    Data1: 238153979
+    Data2: 1115456919
+    Data3: -797692508
+    Data4: -1493686486
+  Banks:
+  - {fileID: -8881273014851140747}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 0
+  MaxDistance: 450
+  Length: 19908
 --- !u!114 &-6453766497537641754
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,12 +177,13 @@ MonoBehaviour:
   - {fileID: 4469401143466956651}
   - {fileID: 6084794583623855430}
   - {fileID: 7916791819001754599}
+  - {fileID: -7876272004224528703}
   EditorParameters: []
   MasterBanks:
   - {fileID: -8881273014851140747}
   StringsBanks:
   - {fileID: 4664653160464214551}
-  cacheTime: 639069584155887879
+  cacheTime: 639070559215359779
   cacheVersion: 131621
 --- !u!114 &1113976165091754811
 MonoBehaviour:
@@ -226,10 +254,10 @@ MonoBehaviour:
   Path: BlackWhiteProjAudio/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639069584155887879
+  lastModified: 639070559215359779
   FileSizes:
   - Name: Desktop
-    Value: 1120
+    Value: 1156
   Exists: 1
 --- !u!114 &4881557332016689307
 MonoBehaviour:
@@ -308,4 +336,4 @@ MonoBehaviour:
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 72000
+  Length: 120000

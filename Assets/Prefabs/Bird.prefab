@@ -164,8 +164,8 @@ MonoBehaviour:
   NonRigidbodyVelocity: 0
   Params: []
   OverrideAttenuation: 0
-  OverrideMinDistance: 0
-  OverrideMaxDistance: 94
+  OverrideMinDistance: 1
+  OverrideMaxDistance: 20
 --- !u!114 &822893253111568012
 MonoBehaviour:
   m_ObjectHideFlags: 0
