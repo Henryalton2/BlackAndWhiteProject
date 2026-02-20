@@ -5,9 +5,8 @@ using FMODUnity;
 using FMOD.Studio;
 
 /// <summary>
-/// Attach to your trigger box. Starts the FMOD song and fires OnBeat
-/// so any listener (e.g. trees) can react without owning the audio.
-/// Also fires OnBirdMarker when a named timeline marker is hit.
+/// Attach to your trigger box. Starts the FMOD song and broadcasts
+/// beat and named marker events to any listeners in the scene.
 /// </summary>
 public class TriggerPlaySound : MonoBehaviour
 {
@@ -15,19 +14,21 @@ public class TriggerPlaySound : MonoBehaviour
     public EventReference fmodEvent;
 
     [Header("Marker Settings")]
-    [Tooltip("Name of the FMOD timeline marker that triggers bird chirps. Leave empty to disable.")]
+    [Tooltip("At least one marker name must be set for marker callbacks to fire.")]
     public string birdMarkerName = "";
 
-    // Trees subscribe to this
+    // Beats
     public static event Action OnBeat;
 
-    // Birds subscribe to this — fires when the named marker is hit
+    // All markers — passes the marker name so any listener can filter
+    public static event Action<string> OnMarker;
+
+    // Kept for backwards compatibility with BirdMarkerSync
     public static event Action OnBirdMarker;
 
     private EventInstance _eventInstance;
     private bool _hasPlayed = false;
     private GCHandle _gcHandle;
-
     private static EVENT_CALLBACK _callbackDelegate;
 
     void Awake()
@@ -63,18 +64,13 @@ public class TriggerPlaySound : MonoBehaviour
 
         _gcHandle = GCHandle.Alloc(this);
         _eventInstance.setUserData(GCHandle.ToIntPtr(_gcHandle));
+        _eventInstance.setCallback(_callbackDelegate,
+            EVENT_CALLBACK_TYPE.TIMELINE_BEAT | EVENT_CALLBACK_TYPE.TIMELINE_MARKER);
 
-        // Listen for beats always; also listen for markers if a name is set
-        var callbackMask = EVENT_CALLBACK_TYPE.TIMELINE_BEAT;
-        if (!string.IsNullOrEmpty(birdMarkerName))
-            callbackMask |= EVENT_CALLBACK_TYPE.TIMELINE_MARKER;
-
-        _eventInstance.setCallback(_callbackDelegate, callbackMask);
         _eventInstance.start();
         Debug.Log("Started FMOD event: " + fmodEvent);
     }
 
-    // ── Static FMOD callback (audio thread — only set flags!) ──────────────────
     [AOT.MonoPInvokeCallback(typeof(EVENT_CALLBACK))]
     private static FMOD.RESULT BeatCallback(EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr paramPtr)
     {
@@ -91,19 +87,16 @@ public class TriggerPlaySound : MonoBehaviour
         }
         else if (type == EVENT_CALLBACK_TYPE.TIMELINE_MARKER)
         {
-            // Read the marker name from the parameter struct
             var props = (TIMELINE_MARKER_PROPERTIES)Marshal.PtrToStructure(
                 paramPtr, typeof(TIMELINE_MARKER_PROPERTIES));
-
-            if (props.name == trigger.birdMarkerName)
-                trigger._pendingBirdMarker = true;
+            trigger._pendingMarkerName = props.name;
         }
 
         return FMOD.RESULT.OK;
     }
 
     private volatile bool _pendingBeat = false;
-    private volatile bool _pendingBirdMarker = false;
+    private volatile string _pendingMarkerName = null;
 
     void Update()
     {
@@ -113,10 +106,16 @@ public class TriggerPlaySound : MonoBehaviour
             OnBeat?.Invoke();
         }
 
-        if (_pendingBirdMarker)
+        if (_pendingMarkerName != null)
         {
-            _pendingBirdMarker = false;
-            OnBirdMarker?.Invoke();
+            string markerName = _pendingMarkerName;
+            _pendingMarkerName = null;
+
+            OnMarker?.Invoke(markerName);
+
+            // Backwards compat for BirdMarkerSync
+            if (markerName == birdMarkerName)
+                OnBirdMarker?.Invoke();
         }
     }
 }
