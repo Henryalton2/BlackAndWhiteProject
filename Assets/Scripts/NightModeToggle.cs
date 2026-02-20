@@ -17,12 +17,11 @@ public class NightModeToggle : MonoBehaviour
 
     private bool nightMode = false;
     private Coroutine transitionCoroutine;
-    [SerializeField] private Material materials;
+
     // Cached renderers
     private readonly List<SpriteRenderer> spriteRenderers = new();
     private readonly List<MeshRenderer> meshRenderers = new();
     private readonly List<Terrain> terrains = new();
-    //private readonly List<Material> materials = new();
 
     private MaterialPropertyBlock mpb;
 
@@ -146,13 +145,6 @@ public class NightModeToggle : MonoBehaviour
             if (!t || !t.materialTemplate) continue;
             if (t.materialTemplate.HasProperty("_Invert"))
                 t.materialTemplate.SetFloat("_Invert", invertValue);
-        }
-
-        {
-            if (!materials) return;
-
-            if (materials.HasProperty("_Invert"))
-                materials.SetFloat("_Invert", invertValue);
         }
     }
 
