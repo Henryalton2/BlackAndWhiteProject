@@ -5,14 +5,13 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-public void PlayGame ()
+    public void PlayGame()
+{
+    SceneManager.LoadScene("lOADING"); // must match exactly
+}
+        public void QuitGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
-    }
-    public void QuitGame ()
-    {
-        Debug.Log("goodbye Trator For Quiting");
+        Debug.Log("Goodbye Traitor For Quitting");
         Application.Quit();
     }
-
 }
