@@ -9,24 +9,38 @@ public class LevelLoader : MonoBehaviour
     public GameObject loadingScreen;
     public Slider slider;
     public TMP_Text progressText;
+    public TMP_Text tipText;
 
-    public float estimatedLoadTime = 20f;
+    [TextArea]
+    public string[] tips;
+
+    public float tipChangeInterval = 4f;
+    public float estimatedLoadTime = 35f;
 
     void Start()
     {
         StartCoroutine(LoadAsynchronously(2));
+        StartCoroutine(CycleTips());
+    }
+
+    IEnumerator CycleTips()
+    {
+        while (true)
+        {
+            if (tips.Length > 0)
+                tipText.text = tips[Random.Range(0, tips.Length)];
+            yield return new WaitForSeconds(tipChangeInterval);
+        }
     }
 
     IEnumerator LoadAsynchronously(int sceneIndex)
     {
-        loadingScreen.SetActive(true);
-
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneIndex);
         operation.allowSceneActivation = false;
+        loadingScreen.SetActive(true);
 
         float elapsed = 0f;
 
-        // Fill bar over estimated time
         while (elapsed < estimatedLoadTime)
         {
             elapsed += Time.deltaTime;
@@ -36,15 +50,8 @@ public class LevelLoader : MonoBehaviour
             yield return null;
         }
 
-        // Bar is full, now let scene activate
         slider.value = 1f;
         progressText.text = "100%";
         operation.allowSceneActivation = true;
-
-        // Wait for scene to actually finish
-        while (!operation.isDone)
-        {
-            yield return null;
-        }
     }
 }

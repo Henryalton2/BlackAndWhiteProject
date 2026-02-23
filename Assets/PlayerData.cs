@@ -31,6 +31,8 @@ public class PlayerData : MonoBehaviour
 
     public void Save()
     {
+        Debug.Log("Attempting to save to: " + Application.persistentDataPath);
+
         SaveData data = new SaveData();
         data.playerX = transform.position.x;
         data.playerY = transform.position.y;
