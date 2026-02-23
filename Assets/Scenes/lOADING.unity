@@ -1484,6 +1484,9 @@ MonoBehaviour:
   - ' sooo you come here often?'
   - uhhh idk what to say right now
   - Tacos are very good
+  tipChangeInterval: 4
+  estimatedLoadTime: 15
+  finishAtPercent: 0.99
 --- !u!4 &1863410778
 Transform:
   m_ObjectHideFlags: 0

@@ -16,6 +16,8 @@ public class LevelLoader : MonoBehaviour
 
     public float tipChangeInterval = 4f;
     public float estimatedLoadTime = 35f;
+    [Range(0f, 1f)]
+    public float finishAtPercent = 0.8f; // set to 0.8 for 80%, 0.75 for 75% etc
 
     void Start()
     {
@@ -41,17 +43,25 @@ public class LevelLoader : MonoBehaviour
 
         float elapsed = 0f;
 
+        // Fill bar to finishAtPercent over estimated load time
         while (elapsed < estimatedLoadTime)
         {
             elapsed += Time.deltaTime;
-            float progress = Mathf.Clamp01(elapsed / estimatedLoadTime);
+            float progress = Mathf.Clamp01(elapsed / estimatedLoadTime) * finishAtPercent;
             slider.value = progress;
             progressText.text = Mathf.RoundToInt(progress * 100f) + "%";
             yield return null;
         }
 
-        slider.value = 1f;
-        progressText.text = "100%";
+        // Hold at finishAtPercent and activate scene
+        slider.value = finishAtPercent;
+        progressText.text = Mathf.RoundToInt(finishAtPercent * 100f) + "%";
         operation.allowSceneActivation = true;
+
+        // Wait for scene to finish then show 100%
+        while (!operation.isDone)
+        {
+            yield return null;
+        }
     }
 }
