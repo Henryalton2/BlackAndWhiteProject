@@ -7,14 +7,14 @@ public class PauseMenu : MonoBehaviour
 {
     public static bool GameisPaused = false;
     public GameObject pauseMenuUI;
-    public GameObject settingsMenuUI; // ADD THIS
+    public GameObject settingsMenuUI; 
     private Canvas canvas;
 
     void Start()
     {
         canvas = GetComponent<Canvas>();
         canvas.enabled = false;
-        settingsMenuUI.SetActive(false); // ADD THIS
+        settingsMenuUI.SetActive(false); 
         Resume();
     }
 
@@ -25,7 +25,7 @@ public class PauseMenu : MonoBehaviour
             if (GameisPaused)
             {
                 if (settingsMenuUI.activeSelf)
-                    CloseSettings(); // ADD THIS - ESC goes back to pause menu if settings is open
+                    CloseSettings(); 
                 else
                     Resume();
             }
@@ -39,7 +39,7 @@ public class PauseMenu : MonoBehaviour
     public void Resume()
     {
         pauseMenuUI.SetActive(false);
-        settingsMenuUI.SetActive(false); // ADD THIS
+        settingsMenuUI.SetActive(false);
         canvas.enabled = false;
         Time.timeScale = 1f;
         GameisPaused = false;
@@ -57,13 +57,13 @@ public class PauseMenu : MonoBehaviour
         Cursor.visible = true;
     }
 
-    public void OpenSettings() // ADD THIS
+    public void OpenSettings()
     {
         pauseMenuUI.SetActive(false);
         settingsMenuUI.SetActive(true);
     }
 
-    public void CloseSettings() // ADD THIS
+    public void CloseSettings() 
     {
         settingsMenuUI.SetActive(false);
         pauseMenuUI.SetActive(true);
