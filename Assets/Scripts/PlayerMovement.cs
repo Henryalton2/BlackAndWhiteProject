@@ -18,7 +18,6 @@ public class PlayerMovement : MonoBehaviour
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
-    // 🔽 REQUIRED BY OTHER SYSTEMS (Audio, etc.)
     public bool isWalking;
     public bool isRunningState;
     public bool isCrouching;
@@ -37,10 +36,8 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         characterController = GetComponent<CharacterController>();
-
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
         originalWalkSpeed = walkSpeed;
         originalRunSpeed = runSpeed;
     }
@@ -48,7 +45,6 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         if (PauseMenu.GameisPaused) return;
-
         HandleMovement();
         HandleLook();
     }
@@ -73,7 +69,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 right = transform.right;
         bool isRunningInput = Input.GetKey(KeyCode.LeftShift);
 
-        // Crouch
         if (Input.GetKey(KeyCode.R) && canMove)
         {
             isCrouching = true;
@@ -93,11 +88,14 @@ public class PlayerMovement : MonoBehaviour
         float curSpeedZ = canMove ? (isRunningInput ? runSpeed : walkSpeed) * Input.GetAxis("Horizontal") : 0f;
 
         float movementY = moveDirection.y;
-
         moveDirection = (forward * curSpeedX) + (right * curSpeedZ);
 
         if (characterController.isGrounded)
         {
+            // Reset downward velocity when grounded so it never accumulates
+            if (movementY < 0f)
+                movementY = -2f;
+
             if (Input.GetButtonDown("Jump") && canMove)
                 movementY = jumpPower;
         }
@@ -105,15 +103,12 @@ public class PlayerMovement : MonoBehaviour
         movementY -= gravity * Time.deltaTime;
         moveDirection.y = movementY;
 
-        // Apply external forces (cloud bounce)
         moveDirection += externalVelocity;
         externalVelocity = Vector3.Lerp(externalVelocity, Vector3.zero, Time.deltaTime * 10f);
 
         characterController.Move(moveDirection * Time.deltaTime);
 
-        // 🔽 State flags (AudioManager relies on these)
         bool hasMoveInput = Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f;
-
         isRunningState = characterController.isGrounded && isRunningInput && !isCrouching && hasMoveInput;
         isWalking = characterController.isGrounded && !isRunningState && !isCrouching && hasMoveInput;
     }
@@ -121,21 +116,22 @@ public class PlayerMovement : MonoBehaviour
     private void HandleLook()
     {
         if (!canMove) return;
-
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
         transform.rotation *= Quaternion.Euler(0f, Input.GetAxis("Mouse X") * lookSpeed, 0f);
     }
 
-    // 🔽 Used by CloudPlatformSpawner
     public void ApplyExternalVelocity(Vector3 velocity)
     {
         externalVelocity += velocity;
     }
+
     public void AddBoost(Vector3 boost)
     {
         moveDirection += boost;
     }
+
+    // Exposed for CloudPlatformSpawner
+    public bool IsGrounded => characterController.isGrounded;
 }
