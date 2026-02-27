@@ -3,77 +3,48 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class ThrowableProjectile : MonoBehaviour
 {
-    [Header("Impact Settings")]
-    [SerializeField] private float impactForce = 10f;
-    [SerializeField] private float lifetime = 5f;
+    [HideInInspector] public float damage = 10f;
+    [HideInInspector] public string itemName = "";
+    [HideInInspector] public float destroyAfter = 8f;
 
-    [Header("Effects")]
-    [SerializeField] private GameObject impactEffect;
-    [SerializeField] private AudioClip impactSound;
-    [SerializeField] private bool destroyOnImpact = true;
+    [Header("Optional FX")]
+    [SerializeField] private TrailRenderer trail;
+    [SerializeField] private GameObject impactFXPrefab;
 
-    private Rigidbody rb;
-    private bool hasImpacted = false;
-    private ThrowableItemData itemData;
+    private bool _hasHit = false;
 
-    private void Awake()
+    private void Start()
     {
-        rb = GetComponent<Rigidbody>();
-
-        // Destroy after lifetime
-        Destroy(gameObject, lifetime);
+        Destroy(gameObject, destroyAfter);
     }
 
-    public void Initialize(ThrowableItemData data)
+    private void OnCollisionEnter(Collision col)
     {
-        itemData = data;
+        if (_hasHit) return;
+        _hasHit = true;
 
-        // Override impact sound if provided in data
-        if (data.throwSound != null)
+        if (trail != null)
         {
-            impactSound = data.throwSound;
+            trail.transform.SetParent(null);
+            Destroy(trail.gameObject, trail.time + 0.5f);
         }
+
+        if (impactFXPrefab != null)
+            Instantiate(impactFXPrefab, col.contacts[0].point,
+                        Quaternion.LookRotation(col.contacts[0].normal));
+
+        IDamageable target = col.gameObject.GetComponentInParent<IDamageable>();
+        if (target != null)
+        {
+            Debug.Log($"[Throw] {itemName} hit {col.gameObject.name} for {damage} damage.");
+            target.TakeDamage(damage);
+        }
+
+        Destroy(gameObject, 0.05f);
     }
+}
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (hasImpacted) return;
-        hasImpacted = true;
-
-        // Apply impact force to rigidbodies
-        Rigidbody hitRb = collision.gameObject.GetComponent<Rigidbody>();
-        if (hitRb != null)
-        {
-            Vector3 impactDirection = collision.contacts[0].normal;
-            hitRb.AddForce(-impactDirection * impactForce, ForceMode.Impulse);
-        }
-
-        // Spawn impact effect
-        if (impactEffect != null)
-        {
-            Instantiate(
-                impactEffect,
-                collision.contacts[0].point,
-                Quaternion.LookRotation(collision.contacts[0].normal)
-            );
-        }
-
-        // Play impact sound
-        if (impactSound != null)
-        {
-            AudioSource.PlayClipAtPoint(impactSound, transform.position);
-        }
-
-        // Destroy or stop the projectile
-        if (destroyOnImpact)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            rb.velocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = true;
-        }
-    }
+public interface IDamageable
+{
+    void TakeDamage(float amount);
 }

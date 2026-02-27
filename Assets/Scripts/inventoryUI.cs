@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
@@ -11,27 +11,57 @@ public class SimpleInventoryUI : MonoBehaviour
     [SerializeField] private float iconSize = 80f;
     [SerializeField] private float iconSpacing = 10f;
 
+    // ── ADDED: throwable highlight colours ───────────────────────────────────
+    [Header("Throwable Highlight")]
+    [SerializeField] private Color throwableBorderColor = new Color(1f, 0.8f, 0f, 1f);
+    [SerializeField] private Color selectedOverlayColor = new Color(0.2f, 0.5f, 1f, 0.35f);
+    // ────────────────────────────────────────────────────────────────────────
+
     private GameObject inventoryPanel;
     private GameObject itemContainer;
     private TextMeshProUGUI titleText;
     private List<GameObject> itemSlots = new List<GameObject>();
     private bool isVisible = false;
 
+    // ── ADDED: HUD strip showing selected throwable outside the inventory ─────
+    private GameObject throwHUD;
+    private TextMeshProUGUI throwHUDText;
+    // ────────────────────────────────────────────────────────────────────────
+
     private void Start()
     {
         CreateUI();
+        CreateThrowHUD(); // ── ADDED
         UpdateInventoryDisplay();
 
-        // Subscribe to inventory changes
         if (InventoryManager.Instance != null)
-        {
             InventoryManager.Instance.OnInventoryChanged += UpdateInventoryDisplay;
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(toggleKey))
+        {
+            isVisible = !isVisible;
+            inventoryPanel.SetActive(isVisible);
+
+            if (isVisible)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
         }
+
+        UpdateThrowHUD(); // ── ADDED
     }
 
     private void CreateUI()
     {
-        // Create panel
         inventoryPanel = new GameObject("InventoryPanel");
         inventoryPanel.transform.SetParent(transform, false);
 
@@ -44,7 +74,6 @@ public class SimpleInventoryUI : MonoBehaviour
         Image panelImage = inventoryPanel.AddComponent<Image>();
         panelImage.color = new Color(0.1f, 0.1f, 0.1f, 0.95f);
 
-        // Create title
         GameObject titleObj = new GameObject("Title");
         titleObj.transform.SetParent(inventoryPanel.transform, false);
 
@@ -56,12 +85,11 @@ public class SimpleInventoryUI : MonoBehaviour
         titleRect.sizeDelta = new Vector2(0, 50);
 
         titleText = titleObj.AddComponent<TextMeshProUGUI>();
-        titleText.text = "INVENTORY - Press G to close";
+        titleText.text = "INVENTORY - Press G to close  |  [Q] Cycle throwable  |  Gold = throwable"; // ── ADDED hint
         titleText.fontSize = 28;
         titleText.color = Color.white;
         titleText.alignment = TextAlignmentOptions.Center;
 
-        // Create item container
         itemContainer = new GameObject("ItemContainer");
         itemContainer.transform.SetParent(inventoryPanel.transform, false);
 
@@ -74,41 +102,67 @@ public class SimpleInventoryUI : MonoBehaviour
         inventoryPanel.SetActive(false);
     }
 
-    private void Update()
+    // ── ADDED: creates the persistent top-screen HUD strip 
+    private void CreateThrowHUD()
     {
-        if (Input.GetKeyDown(toggleKey))
-        {
-            isVisible = !isVisible;
-            inventoryPanel.SetActive(isVisible);
+        throwHUD = new GameObject("ThrowHUD");
+        throwHUD.transform.SetParent(transform, false);
 
-            // Lock/unlock cursor based on inventory state
-            if (isVisible)
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
-            else
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
-        }
+        RectTransform rt = throwHUD.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.3f, 0.92f);
+        rt.anchorMax = new Vector2(0.7f, 0.98f);
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        throwHUD.AddComponent<Image>().color = new Color(0, 0, 0, 0.6f);
+
+        GameObject textObj = new GameObject("Text");
+        textObj.transform.SetParent(throwHUD.transform, false);
+
+        RectTransform textRT = textObj.AddComponent<RectTransform>();
+        textRT.anchorMin = Vector2.zero;
+        textRT.anchorMax = Vector2.one;
+        textRT.offsetMin = Vector2.zero;
+        textRT.offsetMax = Vector2.zero;
+
+        throwHUDText = textObj.AddComponent<TextMeshProUGUI>();
+        throwHUDText.fontSize = 16;
+        throwHUDText.color = new Color(1f, 0.9f, 0.3f);
+        throwHUDText.alignment = TextAlignmentOptions.Center;
     }
+
+        private void UpdateThrowHUD()
+    {
+        ThrowingSystem ts = FindObjectOfType<ThrowingSystem>();
+        if (ts == null) { throwHUD.SetActive(false); return; }
+
+        Item sel = ts.SelectedThrowable;
+        if (sel == null)
+        {
+            throwHUDText.text = "[Q] No throwable selected";
+            throwHUDText.color = Color.gray;
+        }
+        else
+        {
+            string aimHint = ts.IsAiming ? "  AIMING..." : "  [Hold LMB] to aim";
+            throwHUDText.text = $"THROW: {sel.itemName}  x{sel.quantity}{aimHint}";
+            throwHUDText.color = new Color(1f, 0.9f, 0.3f);
+        }
+
+        throwHUD.SetActive(!isVisible);
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     private void UpdateInventoryDisplay()
     {
         if (InventoryManager.Instance == null || itemContainer == null) return;
 
-        // Clear existing slots
         foreach (GameObject slot in itemSlots)
-        {
             Destroy(slot);
-        }
         itemSlots.Clear();
 
         var items = InventoryManager.Instance.GetAllItems();
 
-        // Create slots for each item
         for (int i = 0; i < items.Count; i++)
         {
             Item item = items[i];
@@ -119,14 +173,12 @@ public class SimpleInventoryUI : MonoBehaviour
 
     private GameObject CreateItemSlot(Item item, int index)
     {
-        // Calculate position
         int row = index / iconsPerRow;
         int col = index % iconsPerRow;
 
         float xPos = col * (iconSize + iconSpacing);
         float yPos = -row * (iconSize + iconSpacing);
 
-        // Create slot
         GameObject slot = new GameObject($"Slot_{item.itemName}");
         slot.transform.SetParent(itemContainer.transform, false);
 
@@ -137,11 +189,31 @@ public class SimpleInventoryUI : MonoBehaviour
         slotRect.anchoredPosition = new Vector2(xPos, yPos);
         slotRect.sizeDelta = new Vector2(iconSize, iconSize);
 
-        // Background
         Image bgImage = slot.AddComponent<Image>();
         bgImage.color = new Color(0.3f, 0.3f, 0.3f, 1f);
 
-        // Icon
+        // ── ADDED: gold border and selected overlay for throwable items ───────
+        if (item.isThrowable)
+        {
+            AddBorder(slot, throwableBorderColor, 3f);
+
+            ThrowingSystem ts = FindObjectOfType<ThrowingSystem>();
+            if (ts != null && ts.SelectedThrowable?.itemName == item.itemName)
+            {
+                GameObject overlay = new GameObject("SelectedOverlay");
+                overlay.transform.SetParent(slot.transform, false);
+
+                RectTransform ovRT = overlay.AddComponent<RectTransform>();
+                ovRT.anchorMin = Vector2.zero;
+                ovRT.anchorMax = Vector2.one;
+                ovRT.offsetMin = Vector2.zero;
+                ovRT.offsetMax = Vector2.zero;
+
+                overlay.AddComponent<Image>().color = selectedOverlayColor;
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         if (item.icon != null)
         {
             GameObject iconObj = new GameObject("Icon");
@@ -158,7 +230,6 @@ public class SimpleInventoryUI : MonoBehaviour
             iconImage.preserveAspect = true;
         }
 
-        // Name text
         GameObject nameObj = new GameObject("Name");
         nameObj.transform.SetParent(slot.transform, false);
 
@@ -175,7 +246,6 @@ public class SimpleInventoryUI : MonoBehaviour
         nameText.color = Color.white;
         nameText.alignment = TextAlignmentOptions.Center;
 
-        // Quantity text
         if (item.quantity > 1)
         {
             GameObject qtyObj = new GameObject("Quantity");
@@ -208,10 +278,85 @@ public class SimpleInventoryUI : MonoBehaviour
             qtyText.fontStyle = FontStyles.Bold;
         }
 
+        // ── ADDED: THROW badge on throwable slots ─────────────────────────────
+        if (item.isThrowable)
+        {
+            GameObject badgeObj = new GameObject("ThrowBadge");
+            badgeObj.transform.SetParent(slot.transform, false);
+
+            RectTransform badgeRect = badgeObj.AddComponent<RectTransform>();
+            badgeRect.anchorMin = new Vector2(0, 0);
+            badgeRect.anchorMax = new Vector2(0, 0);
+            badgeRect.pivot = new Vector2(0, 0);
+            badgeRect.anchoredPosition = new Vector2(3, 16);
+            badgeRect.sizeDelta = new Vector2(40, 14);
+
+            badgeObj.AddComponent<Image>().color = new Color(0.8f, 0.6f, 0f, 0.85f);
+
+            GameObject badgeTextObj = new GameObject("BadgeText");
+            badgeTextObj.transform.SetParent(badgeObj.transform, false);
+
+            RectTransform btRect = badgeTextObj.AddComponent<RectTransform>();
+            btRect.anchorMin = Vector2.zero;
+            btRect.anchorMax = Vector2.one;
+            btRect.offsetMin = Vector2.zero;
+            btRect.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI badgeText = badgeTextObj.AddComponent<TextMeshProUGUI>();
+            badgeText.text = "THROW";
+            badgeText.fontSize = 8;
+            badgeText.color = Color.black;
+            badgeText.alignment = TextAlignmentOptions.Center;
+            badgeText.fontStyle = FontStyles.Bold;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         return slot;
     }
 
-    // Public method to check if inventory is open
+    // ── ADDED: helper that draws a programmatic border around a slot ──────────
+    private void AddBorder(GameObject parent, Color color, float thickness)
+    {
+        string[] sides = { "BorderTop", "BorderBottom", "BorderLeft", "BorderRight" };
+        foreach (string side in sides)
+        {
+            GameObject border = new GameObject(side);
+            border.transform.SetParent(parent.transform, false);
+
+            RectTransform rt = border.AddComponent<RectTransform>();
+            border.AddComponent<Image>().color = color;
+
+            switch (side)
+            {
+                case "BorderTop":
+                    rt.anchorMin = new Vector2(0, 1); rt.anchorMax = new Vector2(1, 1);
+                    rt.pivot = new Vector2(0.5f, 1);
+                    rt.anchoredPosition = Vector2.zero;
+                    rt.sizeDelta = new Vector2(0, thickness);
+                    break;
+                case "BorderBottom":
+                    rt.anchorMin = new Vector2(0, 0); rt.anchorMax = new Vector2(1, 0);
+                    rt.pivot = new Vector2(0.5f, 0);
+                    rt.anchoredPosition = Vector2.zero;
+                    rt.sizeDelta = new Vector2(0, thickness);
+                    break;
+                case "BorderLeft":
+                    rt.anchorMin = new Vector2(0, 0); rt.anchorMax = new Vector2(0, 1);
+                    rt.pivot = new Vector2(0, 0.5f);
+                    rt.anchoredPosition = Vector2.zero;
+                    rt.sizeDelta = new Vector2(thickness, 0);
+                    break;
+                case "BorderRight":
+                    rt.anchorMin = new Vector2(1, 0); rt.anchorMax = new Vector2(1, 1);
+                    rt.pivot = new Vector2(1, 0.5f);
+                    rt.anchoredPosition = Vector2.zero;
+                    rt.sizeDelta = new Vector2(thickness, 0);
+                    break;
+            }
+        }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     public bool IsInventoryOpen()
     {
         return isVisible;
@@ -220,8 +365,6 @@ public class SimpleInventoryUI : MonoBehaviour
     private void OnDestroy()
     {
         if (InventoryManager.Instance != null)
-        {
             InventoryManager.Instance.OnInventoryChanged -= UpdateInventoryDisplay;
-        }
     }
 }

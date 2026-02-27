@@ -1,10 +1,20 @@
-using UnityEngine;
+﻿using UnityEngine;
+
 public class CollectibleItem : MonoBehaviour
 {
     [Header("Item Properties")]
     [SerializeField] private string itemName = "Coin";
     [SerializeField] private Sprite itemIcon;
     [SerializeField] private int quantity = 1;
+
+    
+    [Header("Throwable Properties")]
+    [SerializeField] private bool isThrowable = false;
+    [SerializeField] private GameObject throwPrefab;
+    [SerializeField] private float throwForce = 12f;
+    [SerializeField] private float throwDamage = 10f;
+    [SerializeField] private bool consumeOnThrow = true;
+  
 
     [Header("Collection Settings")]
     [SerializeField] private bool autoCollectOnTrigger = true;
@@ -20,51 +30,43 @@ public class CollectibleItem : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (autoCollectOnTrigger && !collected && other.CompareTag(playerTag))
-        {
             Collect();
-        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (autoCollectOnTrigger && !collected && other.CompareTag(playerTag))
-        {
             Collect();
-        }
     }
 
     public void Collect()
     {
         if (collected) return;
-
         collected = true;
 
-        // Add to inventory
         if (InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.AddItem(itemName, itemIcon, quantity);
+           
+            Item item = new Item(itemName, itemIcon, quantity);
+            item.isThrowable = isThrowable;
+            item.throwPrefab = throwPrefab;
+            item.throwForce = throwForce;
+            item.throwDamage = throwDamage;
+            item.consumeOnThrow = consumeOnThrow;
+
+            InventoryManager.Instance.AddItem(item);
+          
         }
 
-        // Play sound
         if (collectSound != null)
-        {
             AudioSource.PlayClipAtPoint(collectSound, transform.position);
-        }
 
-        // Spawn effect
         if (collectEffect != null)
-        {
             Instantiate(collectEffect, transform.position, Quaternion.identity);
-        }
 
-        // Destroy or hide the object
         if (destroyOnCollect)
-        {
             Destroy(gameObject);
-        }
         else
-        {
             gameObject.SetActive(false);
-        }
     }
 }
