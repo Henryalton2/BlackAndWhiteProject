@@ -18,12 +18,14 @@ public class PlayerMovement : MonoBehaviour
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
-    // 🔽 REQUIRED BY OTHER SYSTEMS (Audio, etc.)
     public bool isWalking;
     public bool isRunningState;
     public bool isCrouching;
 
     public static bool dialogue = false;
+
+    // 🔽 Added this
+    public bool IsGrounded => characterController.isGrounded;
 
     private CharacterController characterController;
     private Vector3 moveDirection = Vector3.zero;
@@ -73,7 +75,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 right = transform.right;
         bool isRunningInput = Input.GetKey(KeyCode.LeftShift);
 
-        // Crouch
         if (Input.GetKey(KeyCode.R) && canMove)
         {
             isCrouching = true;
@@ -105,13 +106,11 @@ public class PlayerMovement : MonoBehaviour
         movementY -= gravity * Time.deltaTime;
         moveDirection.y = movementY;
 
-        // Apply external forces (cloud bounce)
         moveDirection += externalVelocity;
         externalVelocity = Vector3.Lerp(externalVelocity, Vector3.zero, Time.deltaTime * 10f);
 
         characterController.Move(moveDirection * Time.deltaTime);
 
-        // 🔽 State flags (AudioManager relies on these)
         bool hasMoveInput = Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f;
 
         isRunningState = characterController.isGrounded && isRunningInput && !isCrouching && hasMoveInput;
@@ -129,11 +128,11 @@ public class PlayerMovement : MonoBehaviour
         transform.rotation *= Quaternion.Euler(0f, Input.GetAxis("Mouse X") * lookSpeed, 0f);
     }
 
-    // 🔽 Used by CloudPlatformSpawner
     public void ApplyExternalVelocity(Vector3 velocity)
     {
         externalVelocity += velocity;
     }
+
     public void AddBoost(Vector3 boost)
     {
         moveDirection += boost;
