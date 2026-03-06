@@ -15,10 +15,10 @@ MonoBehaviour:
   Path: BlackWhiteProjAudio/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639071426707751383
+  lastModified: 639083278797850229
   FileSizes:
   - Name: Desktop
-    Value: 5228416
+    Value: 5228320
   Exists: 1
 --- !u!114 &-8190422224823765870
 MonoBehaviour:
@@ -183,7 +183,7 @@ MonoBehaviour:
   - {fileID: -8881273014851140747}
   StringsBanks:
   - {fileID: 4664653160464214551}
-  cacheTime: 639071426707813077
+  cacheTime: 639083278797896708
   cacheVersion: 131621
 --- !u!114 &1113976165091754811
 MonoBehaviour:
@@ -254,7 +254,7 @@ MonoBehaviour:
   Path: BlackWhiteProjAudio/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639071426707813077
+  lastModified: 639083278797896708
   FileSizes:
   - Name: Desktop
     Value: 1156

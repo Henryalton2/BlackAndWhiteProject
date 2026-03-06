@@ -5,14 +5,27 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-public void PlayGame ()
+    public GameObject continueButton;
+
+    void Start()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
-    }
-    public void QuitGame ()
-    {
-        Debug.Log("goodbye Trator For Quiting");
-        Application.Quit();
+        // Only show continue button if a save file exists
+        continueButton.SetActive(SaveSystem.SaveExists());
     }
 
+    public void PlayGame()
+    {
+        SceneManager.LoadScene("lOADING");
+    }
+
+    public void ContinueGame()
+    {
+        SceneManager.LoadScene("lOADING");
+    }
+
+    public void QuitGame()
+    {
+        Debug.Log("Goodbye Traitor For Quitting");
+        Application.Quit();
+    }
 }
