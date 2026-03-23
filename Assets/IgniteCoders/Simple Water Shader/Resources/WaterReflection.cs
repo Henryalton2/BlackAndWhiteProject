@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Camera))]
 public class WaterReflection : MonoBehaviour
 {
     // referenses
@@ -14,9 +15,8 @@ public class WaterReflection : MonoBehaviour
     public RenderTexture outputTexture;
 
     // parameters
-    public bool copyCameraParamerers;
-    public float verticalOffset;
-    private bool isReady;
+    public bool copyCameraParameters = true;
+    public float clipPlaneOffset = 0.07f;
 
     // cache
     private Transform mainCamTransform;
@@ -28,68 +28,68 @@ public class WaterReflection : MonoBehaviour
 
         reflectionCamera = GetComponent<Camera>();
 
-        Validate();
+        if (mainCamera != null)
+            mainCamTransform = mainCamera.transform;
+
+        reflectionCamTransform = reflectionCamera.transform;
+
+        reflectionCamera.enabled = false;
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        if (isReady)
-            RenderReflection();
+        if (mainCamera == null || reflectionPlane == null)
+            return;
+        RenderReflection();
     }
 
     private void RenderReflection()
     {
-        // take main camera directions and position world space
-        Vector3 cameraDirectionWorldSpace = mainCamTransform.forward;
-        Vector3 cameraUpWorldSpace = mainCamTransform.up;
-        Vector3 cameraPositionWorldSpace = mainCamTransform.position;
-
-        cameraPositionWorldSpace.y += verticalOffset;
-
-        // transform direction and position by reflection plane
-        Vector3 cameraDirectionPlaneSpace = reflectionPlane.InverseTransformDirection(cameraDirectionWorldSpace);
-        Vector3 cameraUpPlaneSpace = reflectionPlane.InverseTransformDirection(cameraUpWorldSpace);
-        Vector3 cameraPositionPlaneSpace = reflectionPlane.InverseTransformPoint(cameraPositionWorldSpace);
-
-        // invert direction and position by reflection plane
-        cameraDirectionPlaneSpace.y *= -1;
-        cameraUpPlaneSpace.y *= -1;
-        cameraPositionPlaneSpace.y *= -1;
-
-        // transform direction and position from reflection plane local space to world space
-        cameraDirectionWorldSpace = reflectionPlane.TransformDirection(cameraDirectionPlaneSpace);
-        cameraUpWorldSpace = reflectionPlane.TransformDirection(cameraUpPlaneSpace);
-        cameraPositionWorldSpace = reflectionPlane.TransformPoint(cameraPositionPlaneSpace);
-
-        // apply direction and position to reflection camera
-        reflectionCamTransform.position = cameraPositionWorldSpace;
-        reflectionCamTransform.LookAt(cameraPositionWorldSpace + cameraDirectionWorldSpace, cameraUpWorldSpace);
-    }
-
-    private void Validate()
-    {
-        if (mainCamera != null)
+        if (copyCameraParameters)
         {
-            mainCamTransform = mainCamera.transform;
-            isReady = true;
-        }
-        else
-            isReady = false;
-
-        if (reflectionCamera != null)
-        {
-            reflectionCamTransform = reflectionCamera.transform;
-            isReady = true;
-        }
-        else
-            isReady = false;
-
-        if (isReady && copyCameraParamerers)
-        {
-            copyCameraParamerers = !copyCameraParamerers;
             reflectionCamera.CopyFrom(mainCamera);
-
             reflectionCamera.targetTexture = outputTexture;
         }
+
+        Vector3 planeNormal = reflectionPlane.up;
+        Vector3 planePosition = reflectionPlane.position;
+
+        Vector3 camPosition = mainCamTransform.position;
+
+        float d = -Vector3.Dot(planeNormal, planePosition);
+        float distance = Vector3.Dot(planeNormal, camPosition) + d;
+
+        Vector3 reflectedPosition = camPosition - 2 * distance * planeNormal;
+
+        Vector3 forward = mainCamTransform.forward;
+        Vector3 up = mainCamTransform.up;
+
+        Vector3 reflectedForward = Vector3.Reflect(forward, planeNormal);
+        Vector3 reflectedUp = Vector3.Reflect(up, planeNormal);
+
+        reflectionCamTransform.position = reflectedPosition;
+        reflectionCamTransform.rotation = Quaternion.LookRotation(reflectedForward, reflectedUp);
+
+        Vector4 clipPlane = CameraSpacePlane(reflectionCamera, planePosition, planeNormal, 1.0f);
+        reflectionCamera.projectionMatrix = mainCamera.CalculateObliqueMatrix(clipPlane);
+
+        reflectionCamera.Render();
+    }
+
+    Vector4 CameraSpacePlane(Camera cam, Vector3 pos, Vector3 normal, float sideSign)
+    {
+        Vector3 offsetPos = pos + normal * clipPlaneOffset;
+
+        Matrix4x4 m = cam.worldToCameraMatrix;
+
+        Vector3 cpos = m.MultiplyPoint(offsetPos);
+        Vector3 cnormal = m.MultiplyVector(normal).normalized * sideSign;
+
+        return new Vector4(
+            cnormal.x,
+            cnormal.y,
+            cnormal.z,
+            -Vector3.Dot(cpos, cnormal)
+        );
     }
 }
