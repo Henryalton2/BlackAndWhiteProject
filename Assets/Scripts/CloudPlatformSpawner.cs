@@ -13,6 +13,11 @@ public class CloudPlatformSpawner : MonoBehaviour
     [Header("Cloud Limit")]
     public int maxClouds = 1;
 
+    [Header("Ground Detection")]
+    [Tooltip("Drag the Terrain or ground object here")]
+    public Collider terrainCollider;
+    public float groundCheckDistance = 0.2f;
+
     [Header("Bounce Settings")]
     public float verticalBoost = 5f;
 
@@ -26,17 +31,28 @@ public class CloudPlatformSpawner : MonoBehaviour
         cloudsLeft = maxClouds;
     }
 
+    bool IsTouchingTerrain()
+    {
+        if (terrainCollider == null) return false;
+        Vector3 rayStart = transform.position + Vector3.up * 0.1f;
+        Ray ray = new Ray(rayStart, Vector3.down);
+        RaycastHit hit;
+        return terrainCollider.Raycast(ray, out hit, groundCheckDistance);
+    }
+
     void Update()
     {
-        if (playerMovement.IsGrounded)
+        // Only reset cloud count when touching actual terrain, not clouds
+        if (IsTouchingTerrain())
         {
             if (cloudsLeft != maxClouds)
             {
                 cloudsLeft = maxClouds;
-                Debug.Log("[CloudSpawner] Reset cloudsLeft — grounded.");
+                Debug.Log("[CloudSpawner] Reset cloudsLeft — touching terrain.");
             }
         }
 
+        // Only spawn when airborne (not grounded on anything)
         if (!playerMovement.IsGrounded && Input.GetButtonDown("Jump") && cloudsLeft > 0)
             SpawnCloud();
     }

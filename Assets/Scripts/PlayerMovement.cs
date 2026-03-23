@@ -75,7 +75,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 right = transform.right;
         bool isRunningInput = Input.GetKey(KeyCode.LeftShift);
 
-        if (Input.GetKey(KeyCode.R) && canMove)
+        if (Input.GetKey(KeyCode.LeftControl) && canMove)
         {
             isCrouching = true;
             characterController.height = crouchHeight;

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7a083cd7148a714f936d6f68a94c6dd, type: 3}
+  m_Name: SimpleFish
+  m_EditorClassIdentifier: 
+  fishName: SimpleFinsh
+  fishIcon: {fileID: -1212896909, guid: 5b13c133e1200d642bb2c5ab111547ec, type: 3}
+  description: A common river fish.
+  spawnWeight: 1
+  fishZoneHeightOverride: 0
+  fishZoneMaxSpeedOverride: 0
