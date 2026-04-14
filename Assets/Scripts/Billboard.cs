@@ -143,7 +143,7 @@ public class Billboard : MonoBehaviour
             transform.rotation = targetRotation;
         }
 
-        //Cache this rotation as the new resting rotation
+        // 🔽 NEW: Cache this rotation as the new resting rotation
         lastBillboardRotation = transform.rotation;
 
         wasInRange = isInRange;
