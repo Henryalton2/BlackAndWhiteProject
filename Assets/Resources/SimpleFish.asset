@@ -15,6 +15,6 @@ MonoBehaviour:
   fishName: SimpleFinsh
   fishIcon: {fileID: -1212896909, guid: 5b13c133e1200d642bb2c5ab111547ec, type: 3}
   description: A common river fish.
-  spawnWeight: 1
+  spawnWeight: 0.5
   fishZoneHeightOverride: 0
   fishZoneMaxSpeedOverride: 0

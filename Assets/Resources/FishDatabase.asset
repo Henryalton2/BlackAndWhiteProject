@@ -9,8 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: f5b3bacbbbd07c54cbf38c4aec4a5c81, type: 3}
   m_Name: FishDatabase
-  m_EditorClassIdentifier: Assembly-CSharp::FishDatabase
+  m_EditorClassIdentifier: 
   fish:
   - {fileID: 11400000, guid: c08a5e1f3d9aa7f41b05d1e5006f31aa, type: 2}
+  - {fileID: 11400000, guid: ed606f80529d6454d889534cd012678c, type: 2}
+  - {fileID: 11400000, guid: ed606f80529d6454d889534cd012678c, type: 2}

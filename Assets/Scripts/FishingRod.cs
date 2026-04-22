@@ -10,6 +10,7 @@ using UnityEngine;
 ///   - Assign rodTipTransform (empty GameObject at rod tip)
 ///   - Assign lineRenderer (LineRenderer component)
 ///   - Assign minigameUI (FishingMinigameUI)
+///   - Assign fishCatchUI (FishCatchUI)
 ///   - Set waterLayerMask to your Water layer
 /// </summary>
 public class FishingRod : MonoBehaviour
@@ -19,6 +20,7 @@ public class FishingRod : MonoBehaviour
     public GameObject hookPrefab;
     public LineRenderer lineRenderer;
     public FishingMinigameUI minigameUI;
+    public FishCatchUI fishCatchUI;
 
     [Header("Cast Settings")]
     public float castForce = 18f;
@@ -27,11 +29,11 @@ public class FishingRod : MonoBehaviour
     public KeyCode reelKey = KeyCode.Mouse0;
 
     [Header("Auto Reel - No Water")]
-    public float maxCastHangTime = 4f;      // seconds before auto-reeling if hook misses water
+    public float maxCastHangTime = 4f;
 
     [Header("Auto Reel - Movement")]
-    public float maxCastDistance = 8f;      // max distance player can move before auto reel
-    public float maxTurnAngle = 90f;        // max degrees player can turn before auto reel
+    public float maxCastDistance = 8f;
+    public float maxTurnAngle = 90f;
 
     [Header("Bite Timing")]
     public float minWaitSeconds = 3f;
@@ -57,8 +59,6 @@ public class FishingRod : MonoBehaviour
     private Rigidbody hookRb;
     private Coroutine biteCoroutine;
     private float castTimer = 0f;
-
-    // Saved at cast time for movement/turn checks
     private Vector3 castOrigin;
     private Vector3 castForwardDir;
 
@@ -102,10 +102,8 @@ public class FishingRod : MonoBehaviour
     // ── AUTO REEL - MOVEMENT / TURN ───────────────────────────────────
     void CheckAutoReelConditions()
     {
-        // Only check while the line is out and not in the minigame
         if (State == FishingState.Idle || State == FishingState.Minigame) return;
 
-        // Distance check
         float distanceMoved = Vector3.Distance(transform.position, castOrigin);
         if (distanceMoved > maxCastDistance)
         {
@@ -114,7 +112,6 @@ public class FishingRod : MonoBehaviour
             return;
         }
 
-        // Turn angle check
         float angle = Vector3.Angle(castForwardDir, transform.forward);
         if (angle > maxTurnAngle)
         {
@@ -224,16 +221,38 @@ public class FishingRod : MonoBehaviour
         State = FishingState.Minigame;
 
         FishData fish = FishDatabase.GetRandomFish();
+
+        if (fish == null)
+        {
+            Debug.LogError("[Fishing] FishDatabase returned null — check that FishDatabase asset is in Assets/Resources/ and has fish assigned.");
+            ResetFishing();
+            return;
+        }
+
         minigameUI.StartMinigame(fish, OnMinigameComplete);
-        Debug.Log("[Fishing] Minigame started.");
+        Debug.Log($"[Fishing] Minigame started with fish: {fish.fishName}");
     }
 
     void OnMinigameComplete(bool success, FishData fish)
     {
+        Debug.Log($"[Fishing] OnMinigameComplete — success: {success}, fish: {(fish == null ? "NULL" : fish.fishName)}, catchUI: {(fishCatchUI == null ? "NULL" : "assigned")}");
+
         if (success)
         {
-            Debug.Log($"[Fishing] Caught: {fish.fishName}!");
-            OnCatch?.Invoke(fish);
+            if (fish != null)
+            {
+                Debug.Log($"[Fishing] Caught: {fish.fishName}!");
+                OnCatch?.Invoke(fish);
+
+                if (fishCatchUI != null)
+                    fishCatchUI.ShowCatch(fish);
+                else
+                    Debug.LogWarning("[Fishing] fishCatchUI is not assigned on FishingRod — catch panel won't show.");
+            }
+            else
+            {
+                Debug.LogError("[Fishing] Success but fish is null — cannot show catch panel.");
+            }
         }
         else
         {

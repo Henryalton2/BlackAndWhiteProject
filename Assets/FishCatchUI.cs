@@ -1,27 +1,25 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
 /// Displays a popup when the player catches a fish.
 ///
-/// Hierarchy setup inside your existing Canvas:
+/// Hierarchy setup inside your FishingCanvas:
 ///
-///   CatchPopup                  (this script lives here)
-///    ├── Background              (Image — your panel art)
-///    ├── FishIcon                (Image — displays the fish sprite)
-///    ├── FishNameText            (TMP_Text — large, bold)
-///    ├── FishDescriptionText     (TMP_Text — smaller, flavour text)
-///    └── DismissText             (TMP_Text — e.g. "Press F to continue")
+///   CatchPopup                  (this script lives here, disabled by default)
+///    ├── PanelAnimation          (Animator with your 3 frame PNGs)
+///    └── Content
+///         ├── FishIcon           (Image — displays the fish sprite)
+///         ├── FishNameText       (TMP_Text)
+///         ├── FishDescriptionText(TMP_Text)
+///         └── DismissText        (TMP_Text)
 ///
 /// Setup:
-///   1. Build the hierarchy above inside your Canvas
-///   2. Attach this script to CatchPopup
-///   3. Assign all fields in the Inspector
-///   4. Disable CatchPopup by default in the Inspector
-///   5. On your FishingRod GameObject, assign CatchPopup to the
-///      Fish Catch UI field and it will be called automatically via OnCatch
+///   1. Attach this script to CatchPopup
+///   2. Assign all fields in the Inspector
+///   3. Disable CatchPopup by default
+///   4. Assign CatchPopup to the Fish Catch UI field on FishingRod
 /// </summary>
 public class FishCatchUI : MonoBehaviour
 {
@@ -34,45 +32,45 @@ public class FishCatchUI : MonoBehaviour
 
     [Header("Settings")]
     public KeyCode dismissKey = KeyCode.F;
-    public float autoDismissAfter = 0f;     // set > 0 to auto-dismiss, 0 = manual only
+    public float autoDismissAfter = 0f;     // 0 = manual dismiss only, >0 = auto close
     public string dismissPrompt = "Press F to continue";
 
-    [Header("Animation")]
-    public float fadeInDuration = 0.3f;
-    public float fadeOutDuration = 0.2f;
-
-    private CanvasGroup canvasGroup;
-    private Coroutine showCoroutine;
     private bool isShowing = false;
+    private float dismissTimer = 0f;
 
     // ─────────────────────────────────────────────────────────────────
-    void Awake()
-    {
-        // CanvasGroup lets us fade the whole popup in/out
-        canvasGroup = popupPanel.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-            canvasGroup = popupPanel.AddComponent<CanvasGroup>();
-
-        popupPanel.SetActive(false);
-
-        if (dismissText != null)
-            dismissText.text = dismissPrompt;
-    }
-
     void Update()
     {
         if (!isShowing) return;
 
+        // Manual dismiss
         if (Input.GetKeyDown(dismissKey))
+        {
             Dismiss();
+            return;
+        }
+
+        // Auto dismiss countdown
+        if (autoDismissAfter > 0f)
+        {
+            dismissTimer += Time.deltaTime;
+            if (dismissTimer >= autoDismissAfter)
+                Dismiss();
+        }
     }
 
-    // ── Called by FishingRod via OnCatch event ────────────────────────
+    // ── Called by FishingRod when a fish is caught ────────────────────
     public void ShowCatch(FishData fish)
     {
-        if (fish == null) return;
+        if (fish == null)
+        {
+            Debug.LogWarning("[CatchUI] ShowCatch called with null fish.");
+            return;
+        }
 
-        // Populate UI
+        Debug.Log($"[CatchUI] Showing catch panel for: {fish.fishName}");
+
+        // Populate text and icon
         if (fishNameText != null)
             fishNameText.text = fish.fishName;
 
@@ -85,57 +83,20 @@ public class FishCatchUI : MonoBehaviour
             fishIcon.gameObject.SetActive(fish.fishIcon != null);
         }
 
-        if (showCoroutine != null) StopCoroutine(showCoroutine);
-        showCoroutine = StartCoroutine(ShowSequence());
-    }
+        if (dismissText != null)
+            dismissText.text = dismissPrompt;
 
-    // ── Show / hide sequence ──────────────────────────────────────────
-    IEnumerator ShowSequence()
-    {
+        dismissTimer = 0f;
         isShowing = true;
         popupPanel.SetActive(true);
-        canvasGroup.alpha = 0f;
-
-        // Fade in
-        float elapsed = 0f;
-        while (elapsed < fadeInDuration)
-        {
-            elapsed += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Clamp01(elapsed / fadeInDuration);
-            yield return null;
-        }
-        canvasGroup.alpha = 1f;
-
-        // Auto dismiss if set
-        if (autoDismissAfter > 0f)
-        {
-            yield return new WaitForSeconds(autoDismissAfter);
-            if (isShowing) Dismiss();
-        }
     }
 
+    // ── Dismiss ───────────────────────────────────────────────────────
     public void Dismiss()
     {
-        if (!isShowing) return;
-        if (showCoroutine != null) StopCoroutine(showCoroutine);
-        showCoroutine = StartCoroutine(FadeOut());
-    }
-
-    IEnumerator FadeOut()
-    {
         isShowing = false;
-
-        float elapsed = 0f;
-        float startAlpha = canvasGroup.alpha;
-
-        while (elapsed < fadeOutDuration)
-        {
-            elapsed += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, elapsed / fadeOutDuration);
-            yield return null;
-        }
-
-        canvasGroup.alpha = 0f;
+        dismissTimer = 0f;
         popupPanel.SetActive(false);
+        Debug.Log("[CatchUI] Catch panel dismissed.");
     }
 }
