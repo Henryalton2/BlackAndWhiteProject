@@ -148,7 +148,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bobAmplitude: 0.2
   bobFrequency: 0.06
-  sinkDepth: 2.17
+  sinkDepth: 2
   sinkDuration: 3.18
   bobberRenderer: {fileID: 0}
   aboveWaterColor: {r: 0.9, g: 0.2, b: 0.2, a: 1}

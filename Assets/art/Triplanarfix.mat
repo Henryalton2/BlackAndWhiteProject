@@ -135,7 +135,7 @@ Material:
     - _Height1: 168.6
     - _Height2: 124.7
     - _HeightBlend: 20
-    - _Invert: 0
+    - _Invert: 1
     - _Metallic: 0
     - _NightTiling: 0.09
     - _OcclusionStrength: 1

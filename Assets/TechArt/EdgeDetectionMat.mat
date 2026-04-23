@@ -43,7 +43,7 @@ Material:
     - _DepthLine: 0.05
     - _DepthlineBias: 1
     - _DrawOrder: 0
-    - _Invert: 0
+    - _Invert: 1
     m_Colors:
     - _Color: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
