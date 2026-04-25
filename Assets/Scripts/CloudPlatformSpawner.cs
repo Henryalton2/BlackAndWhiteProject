@@ -9,51 +9,70 @@ public class CloudPlatformSpawner : MonoBehaviour
     public GameObject cloudPrefab;
     public float cloudLifetime = 5f;
     public float spawnOffsetY = -1.5f;
+    public Transform groundCheck;
 
     [Header("Cloud Limit")]
     public int maxClouds = 1;
 
-    [Header("Ground Detection")]
-    [Tooltip("Drag the Terrain or ground object here")]
-    public Collider terrainCollider;
-    public float groundCheckDistance = 0.2f;
-
     [Header("Bounce Settings")]
     public float verticalBoost = 5f;
 
+    [Header("Air Time Required")]
+    public float airTimeRequired = 0.33f;
+
+    [Header("Ground Detection")]
+    public LayerMask terrainMask;
+
     private int cloudsLeft;
+    private float timeLeftGround = -10f;
+    private bool wasOnGround;
     private PlayerMovement playerMovement;
+    private CharacterController characterController;
     private List<GameObject> activeClouds = new List<GameObject>();
 
     void Start()
     {
         playerMovement = GetComponent<PlayerMovement>();
+        characterController = GetComponent<CharacterController>();
         cloudsLeft = maxClouds;
+        wasOnGround = true;
     }
 
-    bool IsTouchingTerrain()
+    bool IsOnTerrain()
     {
-        if (terrainCollider == null) return false;
-        Vector3 rayStart = transform.position + Vector3.up * 0.1f;
-        Ray ray = new Ray(rayStart, Vector3.down);
+        int layerMask = ~((1 << 6) | (1 << 3)); // ignore Player (6) and Cloud (3)
         RaycastHit hit;
-        return terrainCollider.Raycast(ray, out hit, groundCheckDistance);
+        bool didHit = Physics.Raycast(groundCheck.position, Vector3.down, out hit, 0.5f, layerMask);
+        if (didHit)
+            Debug.Log("[CloudSpawner] Raycast hit: " + hit.collider.gameObject.name + " layer: " + hit.collider.gameObject.layer);
+        else
+            Debug.Log("[CloudSpawner] Raycast hit nothing");
+        return didHit;
     }
-
     void Update()
     {
-        // Only reset cloud count when touching actual terrain, not clouds
-        if (IsTouchingTerrain())
+        bool onGround = characterController.isGrounded;
+        bool onTerrain = IsOnTerrain();
+
+        Debug.Log($"[CloudSpawner] onGround: {onGround} | onTerrain: {onTerrain} | airTime: {(Time.time - timeLeftGround):F2} | cloudsLeft: {cloudsLeft}");
+
+        // Record exact moment player leaves the ground
+        if (wasOnGround && !onGround)
+            timeLeftGround = Time.time;
+
+        wasOnGround = onGround;
+
+        // Only recharge clouds when standing on actual terrain, not cloud platforms
+        if (onTerrain && cloudsLeft != maxClouds)
         {
-            if (cloudsLeft != maxClouds)
-            {
-                cloudsLeft = maxClouds;
-                Debug.Log("[CloudSpawner] Reset cloudsLeft — touching terrain.");
-            }
+            cloudsLeft = maxClouds;
+            Debug.Log("[CloudSpawner] Reset cloudsLeft — touching terrain.");
         }
 
-        // Only spawn when airborne (not grounded on anything)
-        if (!playerMovement.IsGrounded && Input.GetButtonDown("Jump") && cloudsLeft > 0)
+        float airTime = Time.time - timeLeftGround;
+        bool hasBeenAirborne = airTime > airTimeRequired;
+
+        if (!onGround && hasBeenAirborne && Input.GetButtonDown("Jump") && cloudsLeft > 0)
             SpawnCloud();
     }
 
@@ -65,7 +84,6 @@ public class CloudPlatformSpawner : MonoBehaviour
         cloudsLeft--;
         Debug.Log("[CloudSpawner] Spawned cloud. Clouds left: " + cloudsLeft);
         StartCoroutine(DestroyCloudAfterTime(cloud));
-
         if (playerMovement != null)
             playerMovement.AddBoost(new Vector3(0f, verticalBoost, 0f));
     }

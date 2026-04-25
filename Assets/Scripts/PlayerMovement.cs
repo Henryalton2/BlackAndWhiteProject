@@ -18,14 +18,19 @@ public class PlayerMovement : MonoBehaviour
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
+    [Header("Ground Detection")]
+    public Transform groundCheck;
+    public float groundCheckRadius = 0.2f;
+    public LayerMask groundMask;
+
     public bool isWalking;
     public bool isRunningState;
     public bool isCrouching;
 
     public static bool dialogue = false;
 
-    // 🔽 Added this
     public bool IsGrounded => characterController.isGrounded;
+    public bool IsOnGround { get; private set; }
 
     private CharacterController characterController;
     private Vector3 moveDirection = Vector3.zero;
@@ -39,10 +44,8 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         characterController = GetComponent<CharacterController>();
-
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
         originalWalkSpeed = walkSpeed;
         originalRunSpeed = runSpeed;
     }
@@ -50,6 +53,8 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         if (PauseMenu.GameisPaused) return;
+
+        IsOnGround = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundMask);
 
         HandleMovement();
         HandleLook();
@@ -136,5 +141,12 @@ public class PlayerMovement : MonoBehaviour
     public void AddBoost(Vector3 boost)
     {
         moveDirection += boost;
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (groundCheck == null) return;
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
 }
