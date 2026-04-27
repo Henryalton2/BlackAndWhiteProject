@@ -7,14 +7,15 @@ public class CollectibleItem : MonoBehaviour
     [SerializeField] private Sprite itemIcon;
     [SerializeField] private int quantity = 1;
 
-    
     [Header("Throwable Properties")]
     [SerializeField] private bool isThrowable = false;
     [SerializeField] private GameObject throwPrefab;
     [SerializeField] private float throwForce = 12f;
     [SerializeField] private float throwDamage = 10f;
     [SerializeField] private bool consumeOnThrow = true;
-  
+
+    [Header("Equippable Properties")]
+    [SerializeField] private bool isEquippable = false;
 
     [Header("Collection Settings")]
     [SerializeField] private bool autoCollectOnTrigger = true;
@@ -46,16 +47,15 @@ public class CollectibleItem : MonoBehaviour
 
         if (InventoryManager.Instance != null)
         {
-           
             Item item = new Item(itemName, itemIcon, quantity);
             item.isThrowable = isThrowable;
             item.throwPrefab = throwPrefab;
             item.throwForce = throwForce;
             item.throwDamage = throwDamage;
             item.consumeOnThrow = consumeOnThrow;
+            item.isEquippable = isEquippable;
 
             InventoryManager.Instance.AddItem(item);
-          
         }
 
         if (collectSound != null)

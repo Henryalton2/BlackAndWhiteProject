@@ -23,6 +23,10 @@ public class PlayerMovement : MonoBehaviour
     public float groundCheckRadius = 0.2f;
     public LayerMask groundMask;
 
+    [Header("Slope")]
+    [SerializeField] private float maxJumpSlopeAngle = 45f;
+    [SerializeField] private float slideForce = 12f;
+
     public bool isWalking;
     public bool isRunningState;
     public bool isCrouching;
@@ -104,8 +108,20 @@ public class PlayerMovement : MonoBehaviour
 
         if (characterController.isGrounded)
         {
-            if (Input.GetButtonDown("Jump") && canMove)
+            if (movementY < 0)
+                movementY = -2f;
+
+            float slopeAngle = GetGroundSlopeAngle(out Vector3 groundNormal);
+            if (slopeAngle > maxJumpSlopeAngle)
+            {
+                // Slide down steep surfaces so the player can't stand or jump on them
+                Vector3 slideDir = Vector3.ProjectOnPlane(Vector3.down, groundNormal).normalized;
+                moveDirection += slideDir * slideForce * Time.deltaTime;
+            }
+            else if (Input.GetButtonDown("Jump") && canMove)
+            {
                 movementY = jumpPower;
+            }
         }
 
         movementY -= gravity * Time.deltaTime;
@@ -120,6 +136,18 @@ public class PlayerMovement : MonoBehaviour
 
         isRunningState = characterController.isGrounded && isRunningInput && !isCrouching && hasMoveInput;
         isWalking = characterController.isGrounded && !isRunningState && !isCrouching && hasMoveInput;
+    }
+
+    private float GetGroundSlopeAngle(out Vector3 normal)
+    {
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit,
+                            characterController.height / 2f + 0.4f, groundMask))
+        {
+            normal = hit.normal;
+            return Vector3.Angle(hit.normal, Vector3.up);
+        }
+        normal = Vector3.up;
+        return 0f;
     }
 
     private void HandleLook()

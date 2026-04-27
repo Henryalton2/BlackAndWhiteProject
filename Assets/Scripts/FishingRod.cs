@@ -1,18 +1,6 @@
 using System.Collections;
 using UnityEngine;
 
-/// <summary>
-/// Attach to the Player. Handles casting, line rendering, bite sequence,
-/// minigame trigger, and reel-in animation.
-///
-/// Setup:
-///   - Assign hookPrefab (Rigidbody + HookBobber)
-///   - Assign rodTipTransform (empty GameObject at rod tip)
-///   - Assign lineRenderer (LineRenderer component)
-///   - Assign minigameUI (FishingMinigameUI)
-///   - Assign fishCatchUI (FishCatchUI)
-///   - Set waterLayerMask to your Water layer
-/// </summary>
 public class FishingRod : MonoBehaviour
 {
     [Header("References")]
@@ -50,10 +38,16 @@ public class FishingRod : MonoBehaviour
     [Header("Water Detection")]
     public LayerMask waterLayerMask;
 
+    [Header("Equipment")]
+    [SerializeField] private string fishingRodItemName = "Fishing Rod";
+    [SerializeField] private Sprite fishingRodIcon;
+    [SerializeField] private GameObject rodVisual; // assign the rod mesh GameObject in Inspector
+
     // ── State ─────────────────────────────────────────────────────────
     public enum FishingState { Idle, Casting, WaitingForBite, Sinking, Minigame }
     public FishingState State { get; private set; } = FishingState.Idle;
 
+    private bool isEquipped = false;
     private GameObject activeHook;
     private HookBobber hookBobber;
     private Rigidbody hookRb;
@@ -69,8 +63,48 @@ public class FishingRod : MonoBehaviour
     public System.Action OnMiss;
 
     // ─────────────────────────────────────────────────────────────────
+    void Start()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.OnEquipChanged += HandleEquipChanged;
+
+            if (!InventoryManager.Instance.HasItem(fishingRodItemName))
+            {
+                Item rodItem = new Item(fishingRodItemName, fishingRodIcon, 1);
+                rodItem.isEquippable = true;
+                InventoryManager.Instance.AddItem(rodItem);
+            }
+
+            isEquipped = InventoryManager.Instance.IsEquipped(fishingRodItemName);
+        }
+        else
+        {
+            // No inventory system in scene — default to equipped so casting still works
+            isEquipped = true;
+        }
+
+        UpdateRodVisual();
+    }
+
+    void HandleEquipChanged(string equippedName)
+    {
+        isEquipped = equippedName == fishingRodItemName;
+        if (!isEquipped && State != FishingState.Idle)
+            ForceReel();
+        UpdateRodVisual();
+    }
+
+    void UpdateRodVisual()
+    {
+        if (rodVisual != null)
+            rodVisual.SetActive(isEquipped);
+    }
+
     void Update()
     {
+        if (!isEquipped) return;
+
         CheckAutoReelConditions();
         UpdateLineRenderer();
 
@@ -243,6 +277,7 @@ public class FishingRod : MonoBehaviour
             {
                 Debug.Log($"[Fishing] Caught: {fish.fishName}!");
                 OnCatch?.Invoke(fish);
+                InventoryManager.Instance?.AddItem(fish.fishName, fish.fishIcon, 1);
 
                 if (fishCatchUI != null)
                     fishCatchUI.ShowCatch(fish);
@@ -350,5 +385,7 @@ public class FishingRod : MonoBehaviour
     {
         CancelBite();
         if (activeHook != null) Destroy(activeHook);
+        if (InventoryManager.Instance != null)
+            InventoryManager.Instance.OnEquipChanged -= HandleEquipChanged;
     }
 }

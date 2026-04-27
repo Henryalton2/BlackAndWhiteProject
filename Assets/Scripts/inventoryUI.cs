@@ -11,11 +11,14 @@ public class SimpleInventoryUI : MonoBehaviour
     [SerializeField] private float iconSize = 80f;
     [SerializeField] private float iconSpacing = 10f;
 
-    // ── ADDED: throwable highlight colours ───────────────────────────────────
     [Header("Throwable Highlight")]
     [SerializeField] private Color throwableBorderColor = new Color(1f, 0.8f, 0f, 1f);
     [SerializeField] private Color selectedOverlayColor = new Color(0.2f, 0.5f, 1f, 0.35f);
-    // ────────────────────────────────────────────────────────────────────────
+
+    [Header("Equippable Highlight")]
+    [SerializeField] private Color equippableBorderColor = new Color(0.3f, 0.5f, 1f, 1f);
+    [SerializeField] private Color equippedBorderColor = new Color(0.2f, 0.9f, 0.2f, 1f);
+    [SerializeField] private Color equippedOverlayColor = new Color(0.2f, 0.8f, 0.2f, 0.25f);
 
     private GameObject inventoryPanel;
     private GameObject itemContainer;
@@ -23,19 +26,20 @@ public class SimpleInventoryUI : MonoBehaviour
     private List<GameObject> itemSlots = new List<GameObject>();
     private bool isVisible = false;
 
-    // ── ADDED: HUD strip showing selected throwable outside the inventory ─────
     private GameObject throwHUD;
     private TextMeshProUGUI throwHUDText;
-    // ────────────────────────────────────────────────────────────────────────
 
     private void Start()
     {
         CreateUI();
-        CreateThrowHUD(); // ── ADDED
+        CreateThrowHUD();
         UpdateInventoryDisplay();
 
         if (InventoryManager.Instance != null)
+        {
             InventoryManager.Instance.OnInventoryChanged += UpdateInventoryDisplay;
+            InventoryManager.Instance.OnEquipChanged += _ => UpdateInventoryDisplay();
+        }
     }
 
     private void Update()
@@ -57,7 +61,7 @@ public class SimpleInventoryUI : MonoBehaviour
             }
         }
 
-        UpdateThrowHUD(); // ── ADDED
+        UpdateThrowHUD();
     }
 
     private void CreateUI()
@@ -85,8 +89,8 @@ public class SimpleInventoryUI : MonoBehaviour
         titleRect.sizeDelta = new Vector2(0, 50);
 
         titleText = titleObj.AddComponent<TextMeshProUGUI>();
-        titleText.text = "INVENTORY - Press G to close  |  [Q] Cycle throwable  |  Gold = throwable"; // ── ADDED hint
-        titleText.fontSize = 28;
+        titleText.text = "INVENTORY - [G] close  |  [Q] cycle throwable  |  Gold = throwable  |  Blue/Green = equippable (click to equip)";
+        titleText.fontSize = 22;
         titleText.color = Color.white;
         titleText.alignment = TextAlignmentOptions.Center;
 
@@ -102,7 +106,6 @@ public class SimpleInventoryUI : MonoBehaviour
         inventoryPanel.SetActive(false);
     }
 
-    // ── ADDED: creates the persistent top-screen HUD strip 
     private void CreateThrowHUD()
     {
         throwHUD = new GameObject("ThrowHUD");
@@ -131,7 +134,7 @@ public class SimpleInventoryUI : MonoBehaviour
         throwHUDText.alignment = TextAlignmentOptions.Center;
     }
 
-        private void UpdateThrowHUD()
+    private void UpdateThrowHUD()
     {
         ThrowingSystem ts = FindObjectOfType<ThrowingSystem>();
         if (ts == null) { throwHUD.SetActive(false); return; }
@@ -151,7 +154,6 @@ public class SimpleInventoryUI : MonoBehaviour
 
         throwHUD.SetActive(!isVisible);
     }
-    // ────────────────────────────────────────────────────────────────────────
 
     private void UpdateInventoryDisplay()
     {
@@ -192,7 +194,7 @@ public class SimpleInventoryUI : MonoBehaviour
         Image bgImage = slot.AddComponent<Image>();
         bgImage.color = new Color(0.3f, 0.3f, 0.3f, 1f);
 
-        // ── ADDED: gold border and selected overlay for throwable items ───────
+        // Throwable highlight
         if (item.isThrowable)
         {
             AddBorder(slot, throwableBorderColor, 3f);
@@ -212,7 +214,38 @@ public class SimpleInventoryUI : MonoBehaviour
                 overlay.AddComponent<Image>().color = selectedOverlayColor;
             }
         }
-        // ────────────────────────────────────────────────────────────────────
+
+        // Equippable highlight + click handler
+        if (item.isEquippable)
+        {
+            bool equipped = InventoryManager.Instance != null && InventoryManager.Instance.IsEquipped(item.itemName);
+            Color borderColor = equipped ? equippedBorderColor : equippableBorderColor;
+            AddBorder(slot, borderColor, 3f);
+
+            if (equipped)
+            {
+                GameObject overlay = new GameObject("EquippedOverlay");
+                overlay.transform.SetParent(slot.transform, false);
+
+                RectTransform ovRT = overlay.AddComponent<RectTransform>();
+                ovRT.anchorMin = Vector2.zero;
+                ovRT.anchorMax = Vector2.one;
+                ovRT.offsetMin = Vector2.zero;
+                ovRT.offsetMax = Vector2.zero;
+
+                overlay.AddComponent<Image>().color = equippedOverlayColor;
+            }
+
+            string capturedName = item.itemName;
+            Button btn = slot.AddComponent<Button>();
+            btn.onClick.AddListener(() =>
+            {
+                if (InventoryManager.Instance.IsEquipped(capturedName))
+                    InventoryManager.Instance.UnequipItem();
+                else
+                    InventoryManager.Instance.EquipItem(capturedName);
+            });
+        }
 
         if (item.icon != null)
         {
@@ -278,43 +311,54 @@ public class SimpleInventoryUI : MonoBehaviour
             qtyText.fontStyle = FontStyles.Bold;
         }
 
-        // ── ADDED: THROW badge on throwable slots ─────────────────────────────
         if (item.isThrowable)
         {
-            GameObject badgeObj = new GameObject("ThrowBadge");
-            badgeObj.transform.SetParent(slot.transform, false);
-
-            RectTransform badgeRect = badgeObj.AddComponent<RectTransform>();
-            badgeRect.anchorMin = new Vector2(0, 0);
-            badgeRect.anchorMax = new Vector2(0, 0);
-            badgeRect.pivot = new Vector2(0, 0);
-            badgeRect.anchoredPosition = new Vector2(3, 16);
-            badgeRect.sizeDelta = new Vector2(40, 14);
-
-            badgeObj.AddComponent<Image>().color = new Color(0.8f, 0.6f, 0f, 0.85f);
-
-            GameObject badgeTextObj = new GameObject("BadgeText");
-            badgeTextObj.transform.SetParent(badgeObj.transform, false);
-
-            RectTransform btRect = badgeTextObj.AddComponent<RectTransform>();
-            btRect.anchorMin = Vector2.zero;
-            btRect.anchorMax = Vector2.one;
-            btRect.offsetMin = Vector2.zero;
-            btRect.offsetMax = Vector2.zero;
-
-            TextMeshProUGUI badgeText = badgeTextObj.AddComponent<TextMeshProUGUI>();
-            badgeText.text = "THROW";
-            badgeText.fontSize = 8;
-            badgeText.color = Color.black;
-            badgeText.alignment = TextAlignmentOptions.Center;
-            badgeText.fontStyle = FontStyles.Bold;
+            AddSmallBadge(slot, "THROW", new Color(0.8f, 0.6f, 0f, 0.85f), new Vector2(3, 16));
         }
-        // ────────────────────────────────────────────────────────────────────
+
+        if (item.isEquippable)
+        {
+            bool equipped = InventoryManager.Instance != null && InventoryManager.Instance.IsEquipped(item.itemName);
+            string label = equipped ? "UNEQUIP" : "EQUIP";
+            Color badgeColor = equipped ? new Color(0.1f, 0.6f, 0.1f, 0.85f) : new Color(0.2f, 0.2f, 0.7f, 0.85f);
+            float yOffset = item.isThrowable ? 30f : 16f;
+            AddSmallBadge(slot, label, badgeColor, new Vector2(3, yOffset));
+        }
 
         return slot;
     }
 
-    // ── ADDED: helper that draws a programmatic border around a slot ──────────
+    private void AddSmallBadge(GameObject parent, string label, Color bgColor, Vector2 anchoredPos)
+    {
+        GameObject badgeObj = new GameObject($"Badge_{label}");
+        badgeObj.transform.SetParent(parent.transform, false);
+
+        RectTransform badgeRect = badgeObj.AddComponent<RectTransform>();
+        badgeRect.anchorMin = new Vector2(0, 0);
+        badgeRect.anchorMax = new Vector2(0, 0);
+        badgeRect.pivot = new Vector2(0, 0);
+        badgeRect.anchoredPosition = anchoredPos;
+        badgeRect.sizeDelta = new Vector2(44, 14);
+
+        badgeObj.AddComponent<Image>().color = bgColor;
+
+        GameObject badgeTextObj = new GameObject("BadgeText");
+        badgeTextObj.transform.SetParent(badgeObj.transform, false);
+
+        RectTransform btRect = badgeTextObj.AddComponent<RectTransform>();
+        btRect.anchorMin = Vector2.zero;
+        btRect.anchorMax = Vector2.one;
+        btRect.offsetMin = Vector2.zero;
+        btRect.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI badgeText = badgeTextObj.AddComponent<TextMeshProUGUI>();
+        badgeText.text = label;
+        badgeText.fontSize = 8;
+        badgeText.color = Color.white;
+        badgeText.alignment = TextAlignmentOptions.Center;
+        badgeText.fontStyle = FontStyles.Bold;
+    }
+
     private void AddBorder(GameObject parent, Color color, float thickness)
     {
         string[] sides = { "BorderTop", "BorderBottom", "BorderLeft", "BorderRight" };
@@ -355,7 +399,6 @@ public class SimpleInventoryUI : MonoBehaviour
             }
         }
     }
-    // ────────────────────────────────────────────────────────────────────────
 
     public bool IsInventoryOpen()
     {
@@ -365,6 +408,9 @@ public class SimpleInventoryUI : MonoBehaviour
     private void OnDestroy()
     {
         if (InventoryManager.Instance != null)
+        {
             InventoryManager.Instance.OnInventoryChanged -= UpdateInventoryDisplay;
+            InventoryManager.Instance.OnEquipChanged -= _ => UpdateInventoryDisplay();
+        }
     }
 }

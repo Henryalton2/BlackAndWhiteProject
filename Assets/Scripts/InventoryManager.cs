@@ -8,13 +8,13 @@ public class Item
     public Sprite icon;
     public int quantity;
 
- 
     public bool isThrowable = false;
     public GameObject throwPrefab;
     public float throwForce = 12f;
     public float throwDamage = 10f;
     public bool consumeOnThrow = true;
- 
+
+    public bool isEquippable = false;
 
     public Item(string name, Sprite itemIcon, int qty = 1)
     {
@@ -34,6 +34,9 @@ public class InventoryManager : MonoBehaviour
     private List<Item> inventory = new List<Item>();
 
     public System.Action OnInventoryChanged;
+    public System.Action<string> OnEquipChanged;
+
+    public string EquippedItemName { get; private set; } = "";
 
     private void Awake()
     {
@@ -70,7 +73,6 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
-  
     public bool AddItem(Item newItem)
     {
         Item existingItem = inventory.Find(item => item.itemName == newItem.itemName);
@@ -92,7 +94,6 @@ public class InventoryManager : MonoBehaviour
         Debug.Log($"Added {newItem.quantity}x {newItem.itemName} to inventory");
         return true;
     }
-   
 
     public bool RemoveItem(string itemName, int quantity = 1)
     {
@@ -102,6 +103,11 @@ public class InventoryManager : MonoBehaviour
             item.quantity -= quantity;
             if (item.quantity <= 0)
             {
+                if (EquippedItemName == itemName)
+                {
+                    EquippedItemName = "";
+                    OnEquipChanged?.Invoke(EquippedItemName);
+                }
                 inventory.Remove(item);
             }
             OnInventoryChanged?.Invoke();
@@ -109,6 +115,26 @@ public class InventoryManager : MonoBehaviour
         }
         return false;
     }
+
+    public void EquipItem(string itemName)
+    {
+        if (!HasItem(itemName)) return;
+        EquippedItemName = itemName;
+        OnEquipChanged?.Invoke(EquippedItemName);
+        OnInventoryChanged?.Invoke();
+        Debug.Log($"Equipped: {itemName}");
+    }
+
+    public void UnequipItem()
+    {
+        string prev = EquippedItemName;
+        EquippedItemName = "";
+        OnEquipChanged?.Invoke(EquippedItemName);
+        OnInventoryChanged?.Invoke();
+        Debug.Log($"Unequipped: {prev}");
+    }
+
+    public bool IsEquipped(string itemName) => EquippedItemName == itemName;
 
     public bool HasItem(string itemName, int quantity = 1)
     {
