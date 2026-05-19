@@ -39,11 +39,13 @@ public class PlayerMovement : MonoBehaviour
     private CharacterController characterController;
     private Vector3 moveDirection = Vector3.zero;
     private Vector3 externalVelocity = Vector3.zero;
+    private Vector3 lastContactNormal = Vector3.up;
 
     private float rotationX = 0f;
     private float originalWalkSpeed;
     private float originalRunSpeed;
     private bool canMove = true;
+    private bool wasClimbing = false;
 
     void Start()
     {
@@ -57,6 +59,16 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         if (PauseMenu.GameisPaused) return;
+
+        if (ClimbingController.isClimbing) { wasClimbing = true; return; }
+
+        // Sync camera rotation the first frame after climbing ends so it doesn't snap
+        if (wasClimbing)
+        {
+            wasClimbing = false;
+            rotationX = playerCamera.transform.localEulerAngles.x;
+            if (rotationX > 180f) rotationX -= 360f;
+        }
 
         IsOnGround = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundMask);
 
@@ -106,26 +118,27 @@ public class PlayerMovement : MonoBehaviour
 
         moveDirection = (forward * curSpeedX) + (right * curSpeedZ);
 
+        float slopeAngle = Vector3.Angle(lastContactNormal, Vector3.up);
+        bool onSteepSlope = characterController.isGrounded && slopeAngle > maxJumpSlopeAngle;
+
         if (characterController.isGrounded)
         {
             if (movementY < 0)
                 movementY = -2f;
 
-            float slopeAngle = GetGroundSlopeAngle(out Vector3 groundNormal);
-            if (slopeAngle > maxJumpSlopeAngle)
-            {
-                // Slide down steep surfaces so the player can't stand or jump on them
-                Vector3 slideDir = Vector3.ProjectOnPlane(Vector3.down, groundNormal).normalized;
-                moveDirection += slideDir * slideForce * Time.deltaTime;
-            }
-            else if (Input.GetButtonDown("Jump") && canMove)
-            {
+            if (!onSteepSlope && Input.GetButtonDown("Jump") && canMove)
                 movementY = jumpPower;
-            }
         }
 
         movementY -= gravity * Time.deltaTime;
         moveDirection.y = movementY;
+
+        if (onSteepSlope)
+        {
+            Vector3 slideDir = Vector3.ProjectOnPlane(Vector3.down, lastContactNormal).normalized;
+            moveDirection.x += slideDir.x * slideForce;
+            moveDirection.z += slideDir.z * slideForce;
+        }
 
         moveDirection += externalVelocity;
         externalVelocity = Vector3.Lerp(externalVelocity, Vector3.zero, Time.deltaTime * 10f);
@@ -138,16 +151,10 @@ public class PlayerMovement : MonoBehaviour
         isWalking = characterController.isGrounded && !isRunningState && !isCrouching && hasMoveInput;
     }
 
-    private float GetGroundSlopeAngle(out Vector3 normal)
+    void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit,
-                            characterController.height / 2f + 0.4f, groundMask))
-        {
-            normal = hit.normal;
-            return Vector3.Angle(hit.normal, Vector3.up);
-        }
-        normal = Vector3.up;
-        return 0f;
+        if (hit.normal.y > 0.1f)
+            lastContactNormal = hit.normal;
     }
 
     private void HandleLook()
@@ -169,6 +176,13 @@ public class PlayerMovement : MonoBehaviour
     public void AddBoost(Vector3 boost)
     {
         moveDirection += boost;
+    }
+
+    // Called by ClimbingController when the player releases the rope,
+    // so they don't plummet at whatever vertical speed they had before grabbing.
+    public void ResetVerticalVelocity()
+    {
+        moveDirection.y = 0f;
     }
 
     void OnDrawGizmosSelected()
