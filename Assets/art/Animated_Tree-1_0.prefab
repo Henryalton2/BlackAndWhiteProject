@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -2775780650067621336}
   - component: {fileID: -626411061922305966}
   - component: {fileID: -6741547052757140441}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Animated_Tree-1_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -134,10 +134,6 @@ MonoBehaviour:
   lockX: 1
   lockY: 0
   lockZ: 0
-  enableDistantRefresh: 1
-  refreshInterval: 8
-  refreshDuration: 0.25
-  refreshChance: 0.25
 --- !u!114 &9196573246265344474
 MonoBehaviour:
   m_ObjectHideFlags: 0

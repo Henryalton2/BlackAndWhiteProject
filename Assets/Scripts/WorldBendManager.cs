@@ -8,15 +8,18 @@ public class WorldBendManager : MonoBehaviour
     float currentBend;
     float targetBend;
 
+    private Terrain terrain;
+    private Material terrainMaterial;
+
     void Start()
     {
-        if (bendMaterial == null)
-        {
-            Debug.LogError("WorldBendManager: No material assigned!");
-            return;
-        }
+        terrain = FindObjectOfType<Terrain>();
+        if (terrain != null)
+            terrainMaterial = terrain.materialTemplate;
 
-        currentBend = bendMaterial.GetFloat("_BendAmount");
+        currentBend = bendMaterial != null
+            ? bendMaterial.GetFloat("_BendAmount")
+            : 0f;
         targetBend = currentBend;
 
         Debug.Log("WorldBendManager started. Initial bend = " + currentBend);
@@ -24,14 +27,20 @@ public class WorldBendManager : MonoBehaviour
 
     void Update()
     {
-        if (bendMaterial == null) return;
-
         currentBend = Mathf.Lerp(currentBend, targetBend, Time.deltaTime * lerpSpeed);
-        bendMaterial.SetFloat("_BendAmount", currentBend);
+        SetBend(currentBend);
 
-        // TEMP debug every second
         if (Time.frameCount % 60 == 0)
             Debug.Log("Current bend: " + currentBend + " | Target: " + targetBend);
+    }
+
+    void SetBend(float value)
+    {
+        if (bendMaterial != null)
+            bendMaterial.SetFloat("_BendAmount", value);
+
+        if (terrainMaterial != null)
+            terrainMaterial.SetFloat("_BendAmount", value);
     }
 
     public void SetTargetBend(float newBend)

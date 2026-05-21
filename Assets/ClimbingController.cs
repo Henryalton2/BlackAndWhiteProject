@@ -12,6 +12,15 @@ public class ClimbingController : MonoBehaviour
     public LayerMask climbableLayers = ~0;
     public Camera playerCamera;
 
+    [Header("Climb Feel")]
+    [Range(0.1f, 2f)]   public float surfaceOffset     = 0.6f;
+    [Range(0.1f, 1.5f)] public float climbStepDistance = 0.45f;
+    [Range(0.1f, 1f)]   public float climbStepCooldown = 0.35f;
+
+    [Header("Auto Climb")]
+    public bool autoClimb = true;
+    [Range(30f, 85f)] public float autoClimbSlopeAngle = 60f;   // should be above PlayerMovement.maxJumpSlopeAngle (45°)
+
     [Header("Rotation")]
     public float rotationSnapSpeed = 8f;
 
@@ -35,10 +44,22 @@ public class ClimbingController : MonoBehaviour
     private float cameraRotationX;
     private float cameraRotationY;   // free left/right look while climbing
 
-    private const float SurfaceOffset = 0.6f;
-    private const float CastLift = 1.0f;
-    private const float CastLength = 1.8f;
+    private const float CastLift        = 1.0f;
     private const float MaxCeilingAngle = 10f;
+
+    // Grab lerp state
+    private Vector3 _grabFrom     = Vector3.zero;
+    private Vector3 _grabTo       = Vector3.zero;
+    private float   _grabProgress = 1f;   // 1 = settled, ready for next grab
+    private int     _armSide      = 1;
+
+    private float _autoClimbCooldown = 0f;
+    private const float AutoClimbCooldownDuration = 0.6f;
+
+    [Header("Grace Period")]
+    [Range(0f, 1f)] public float climbGracePeriod = 0.25f;
+
+    private float _climbStartTime = 0f;
 
     private HashSet<Collider> selfColliders = new HashSet<Collider>();
     private RaycastHit[] hitBuffer = new RaycastHit[16];
@@ -108,6 +129,9 @@ public class ClimbingController : MonoBehaviour
 
         if (!isClimbing)
         {
+            if (_autoClimbCooldown > 0f)
+                _autoClimbCooldown -= Time.deltaTime;
+
             if (Input.GetKeyDown(climbKey) && Stamina > 0f)
                 TryStartClimbing();
             return;
@@ -128,28 +152,78 @@ public class ClimbingController : MonoBehaviour
             return;
         }
 
-        // WASD along the surface plane
-        Vector3 moveForward = Vector3.ProjectOnPlane(transform.TransformDirection(Vector3.forward), surfaceNormal).normalized;
-        Vector3 moveRight = Vector3.ProjectOnPlane(transform.TransformDirection(Vector3.right), surfaceNormal).normalized;
-        Vector3 delta = (moveForward * Input.GetAxis("Vertical") +
-                               moveRight * Input.GetAxis("Horizontal")) * climbSpeed * Time.deltaTime;
+        // WASD anchored to world directions on the surface:
+        // W/S = up/down the wall (against/with gravity), A/D = left/right across it.
+        // This is the same regardless of which angle the player approached from.
+        Vector3 wallUp = Vector3.ProjectOnPlane(Vector3.up, surfaceNormal).normalized;
+        if (wallUp.sqrMagnitude < 0.01f)   // nearly flat surface — fall back to body forward
+            wallUp = Vector3.ProjectOnPlane(transform.forward, surfaceNormal).normalized;
+        Vector3 wallRight = Vector3.Cross(surfaceNormal, wallUp).normalized;
 
-        Vector3 proposed = transform.position + delta;
-        if (!Physics.Linecast(transform.position + surfaceNormal * 0.05f,
-                              proposed + surfaceNormal * 0.05f, climbableLayers))
-            transform.position = proposed;
+        // Cast length scales with surfaceOffset so player never drifts out of range
+        float castLength = surfaceOffset + CastLift + 0.5f;
 
-        // Surface tracking — keeps player flush; exits at edges
-        Vector3 castOrigin = transform.position + surfaceNormal * CastLift;
-        if (RaycastIgnoreSelf(castOrigin, -surfaceNormal, out RaycastHit hit, CastLength, climbableLayers))
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+        bool hasInput = Mathf.Abs(h) > 0.1f || Mathf.Abs(v) > 0.1f;
+        bool settled  = _grabProgress >= 1f;
+
+        // ── Fire a new grab when settled and input held ──────────────────
+        if (settled && hasInput)
         {
+            Vector3 inputDir = (wallUp * v + wallRight * h).normalized;
+            Vector3 sway     = wallRight * (_armSide * 0.04f);
+            Vector3 proposed = transform.position + inputDir * climbStepDistance + sway;
+
+            // Cast from the proposed spot back to the wall to find the exact
+            // snap point — this means _grabTo is always on the surface.
+            Vector3 probeCast = proposed + surfaceNormal * CastLift;
+            if (RaycastIgnoreSelf(probeCast, -surfaceNormal, out RaycastHit grabHit, castLength, climbableLayers))
+            {
+                _grabFrom     = transform.position;
+                _grabTo       = grabHit.point + grabHit.normal * surfaceOffset;
+                _grabProgress = 0f;
+                _armSide      = -_armSide;
+            }
+        }
+
+        // ── Smooth lerp toward grab target (SmoothStep = slow→fast→slow) ─
+        if (_grabProgress < 1f)
+        {
+            _grabProgress += Time.deltaTime / climbStepCooldown;
+            _grabProgress  = Mathf.Clamp01(_grabProgress);
+            float t = Mathf.SmoothStep(0f, 1f, _grabProgress);
+            transform.position = Vector3.Lerp(_grabFrom, _grabTo, t);
+        }
+
+        // ── Surface tracking ─────────────────────────────────────────────
+        // Always update the normal (keeps rotation correct on curved walls).
+        // Only snap position when settled — never fight the lerp.
+        Vector3 castOrigin = transform.position + surfaceNormal * CastLift;
+        if (RaycastIgnoreSelf(castOrigin, -surfaceNormal, out RaycastHit hit, castLength, climbableLayers))
+        {
+            // If the surface we're now tracking is flat enough to walk on, the player
+            // has crested a ledge — stop climbing. Skip this during the entry grace
+            // period: the cast can graze terrain behind the player while still lerping
+            // toward the wall, producing a false flat-surface hit.
+            float surfaceAngle = Vector3.Angle(hit.normal, Vector3.up);
+            if (surfaceAngle < autoClimbSlopeAngle && Time.time - _climbStartTime > climbGracePeriod)
+            {
+                StopClimbing();
+                return;
+            }
+
             surfaceNormal = hit.normal;
-            transform.position = hit.point + hit.normal * SurfaceOffset;
+            if (settled)
+                transform.position = hit.point + hit.normal * surfaceOffset;
             SetTargetRotation(hit.normal);
         }
         else
         {
-            StopClimbing();
+            // Allow a short grace window on entry — the cast can miss for one or two
+            // frames while the player settles against the surface.
+            if (Time.time - _climbStartTime > climbGracePeriod)
+                StopClimbing();
             return;
         }
 
@@ -165,7 +239,7 @@ public class ClimbingController : MonoBehaviour
 
     // ── Start / Stop ──────────────────────────────────────────────────────
 
-    void TryStartClimbing()
+    void TryStartClimbing(bool requireFacing = true)
     {
         Vector3 center = transform.position + Vector3.up * 1.0f;
         float minY = Mathf.Sin(MaxCeilingAngle * Mathf.Deg2Rad);
@@ -180,6 +254,10 @@ public class ClimbingController : MonoBehaviour
             Vector3 castFrom = center + dir * grabReach;
             if (!RaycastIgnoreSelf(castFrom, -dir, out RaycastHit hit, grabReach, climbableLayers)) continue;
             if (hit.normal.y < -minY) continue;
+
+            // For manual key press only: wall must be roughly in front of the player.
+            // Auto-climb skips this — it already verified the input direction.
+            if (requireFacing && Vector3.Dot(transform.forward, -hit.normal) < 0.3f) continue;
 
             float dist = Vector3.Distance(center, hit.point);
             if (dist < bestDist) { bestDist = dist; bestNormal = hit.normal; bestPoint = hit.point; }
@@ -198,10 +276,18 @@ public class ClimbingController : MonoBehaviour
         if (bestNormal == Vector3.zero) return;
 
         surfaceNormal = bestNormal;
-        transform.position = bestPoint + bestNormal * SurfaceOffset;
 
-        isClimbing = true;
-        cc.enabled = false;
+        // Don't teleport the player — lerp them onto the wall instead.
+        // This avoids the Y conflict with the surface tracking snap and
+        // prevents the camera jumping on entry.
+        _grabFrom     = transform.position;
+        _grabTo       = bestPoint + bestNormal * surfaceOffset;
+        _grabProgress = 0f;   // start lerping immediately
+        _armSide      = 1;
+
+        _climbStartTime = Time.time;
+        isClimbing      = true;
+        cc.enabled      = false;
 
         SetTargetRotation(surfaceNormal);
 
@@ -213,8 +299,9 @@ public class ClimbingController : MonoBehaviour
 
     void StopClimbing()
     {
-        isClimbing = false;
-        cc.enabled = true;
+        isClimbing           = false;
+        cc.enabled           = true;
+        _autoClimbCooldown   = AutoClimbCooldownDuration;
 
         // Use the camera's world yaw as the new body yaw so there's no snap
         float worldYaw = playerCamera.transform.eulerAngles.y;
@@ -224,6 +311,35 @@ public class ClimbingController : MonoBehaviour
         cameraRotationY = 0f;
 
         playerMovement?.ResetVerticalVelocity();
+    }
+
+    // ── Auto-climb on steep surface contact ───────────────────────────────
+
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (isClimbing)                          return;
+        if (!autoClimb)                          return;
+        if (Stamina <= 0f)                       return;
+        if (_autoClimbCooldown > 0f)             return;
+
+        // Only surfaces on climbable layers
+        if (((1 << hit.gameObject.layer) & climbableLayers) == 0) return;
+
+        // Surface must be steep enough to count as a wall
+        float angle = Vector3.Angle(hit.normal, Vector3.up);
+        if (angle < autoClimbSlopeAngle) return;
+
+        // Use input direction rather than cc.velocity — velocity is near zero
+        // when the CC is blocked by the wall, which is exactly when we want to climb.
+        Vector3 inputDir = transform.TransformDirection(
+            new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical")));
+        if (inputDir.magnitude < 0.2f) return;                                    // no input
+        if (Vector3.Dot(inputDir.normalized, -hit.normal) < 0.3f) return;         // not aimed at wall
+
+        // Don't auto-climb while falling fast
+        if (cc.velocity.y < -4f) return;
+
+        TryStartClimbing(requireFacing: false);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

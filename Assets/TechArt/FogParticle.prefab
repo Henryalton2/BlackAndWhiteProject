@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2671782816008738861}
   - component: {fileID: 857730955131784225}
   - component: {fileID: -6748061392951824871}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: FogParticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}

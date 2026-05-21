@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 97233257980799725}
   - component: {fileID: 5060707663137230953}
   - component: {fileID: 5151819482746462534}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: TallTreeColour
   m_TagString: Invertible
   m_Icon: {fileID: 0}
@@ -131,10 +131,6 @@ MonoBehaviour:
   lockX: 1
   lockY: 0
   lockZ: 0
-  enableDistantRefresh: 1
-  refreshInterval: 8
-  refreshDuration: 0.25
-  refreshChance: 0.25
 --- !u!114 &5151819482746462534
 MonoBehaviour:
   m_ObjectHideFlags: 0

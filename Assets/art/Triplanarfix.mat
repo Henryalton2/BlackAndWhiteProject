@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Triplanarfix
-  m_Shader: {fileID: 4800000, guid: 29132ecee23c3044c9a0b107cfbd49df, type: 3}
+  m_Shader: {fileID: 4800000, guid: 3a20600b658a55c49a3b164c540c5869, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -31,9 +31,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Control:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DayTex:
         m_Texture: {fileID: 2800000, guid: f9ed4d33ce22b9141a2a57a20da93c44, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 1, y: 0.68}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
@@ -87,6 +91,22 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Splat0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SteepDayTex:
         m_Texture: {fileID: 2800000, guid: 02113d51372d3284cbced26597664b5d, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -134,7 +154,7 @@ Material:
     - _GlossyReflections: 0
     - _Height1: 168.6
     - _Height2: 124.7
-    - _HeightBlend: 20
+    - _HeightBlend: 18.7
     - _Invert: 0
     - _Metallic: 0
     - _NightTiling: 0.09
@@ -147,6 +167,10 @@ Material:
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
+    - _Splat0Tiling: 1
+    - _Splat1Tiling: 1
+    - _Splat2Tiling: 1
+    - _Splat3Tiling: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _SteepDayTiling: -0.05

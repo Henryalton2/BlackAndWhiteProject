@@ -75,18 +75,18 @@ public class Billboard : MonoBehaviour
         switch (billboardType)
         {
             case BillboardType.LookAtCamera:
-
+                
                 Vector3 directionToCamera = Camera.main.transform.position - transform.position;
                 targetRotation = Quaternion.LookRotation(directionToCamera);
                 break;
             case BillboardType.CameraForward:
-
+                
                 targetRotation = Camera.main.transform.rotation;
                 break;
             default:
                 break;
         }
-
+               
         Vector3 rotation = targetRotation.eulerAngles;
         if (lockX) { rotation.x = originalRotation.x; }
         if (lockY) { rotation.y = originalRotation.y; }

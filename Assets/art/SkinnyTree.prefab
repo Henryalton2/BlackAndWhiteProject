@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6034994027631680138}
   - component: {fileID: 2614261546937181656}
   - component: {fileID: 8135834125852822997}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: SkinnyTree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,21 +130,3 @@ MonoBehaviour:
   lockX: 1
   lockY: 0
   lockZ: 0
-  enableDistantRefresh: 1
-  refreshInterval: 8
-  refreshDuration: 0.25
-  refreshChance: 0.25
-  enableSpriteSwapping: 0
-  spriteRenderer: {fileID: 0}
-  directionMode: 0
-  facingRoot: {fileID: 0}
-  worldFacingDirection: {x: 0, y: 0, z: 1}
-  npcForwardAxis: 0
-  frontSprite: {fileID: 0}
-  backSprite: {fileID: 0}
-  rightSprite: {fileID: 0}
-  leftSprite: {fileID: 0}
-  frontRightSprite: {fileID: 0}
-  frontLeftSprite: {fileID: 0}
-  backRightSprite: {fileID: 0}
-  backLeftSprite: {fileID: 0}

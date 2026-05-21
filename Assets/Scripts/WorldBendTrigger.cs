@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(Collider))]
@@ -21,6 +21,7 @@ public class WorldBendTrigger : MonoBehaviour
     private bool playerInside = false;
 
     private Terrain terrain;
+    private Material terrainMaterial;
     private float originalDetailDistance = -1f;
 
     private static WorldBendTrigger activeTrigger;
@@ -28,25 +29,20 @@ public class WorldBendTrigger : MonoBehaviour
     void Start()
     {
         terrain = FindObjectOfType<Terrain>();
-
-        if (bendMaterial == null)
+        if (terrain != null)
         {
-            Debug.LogError($"WorldBendTrigger ({gameObject.name}): No material assigned!");
-            return;
+            terrainMaterial = terrain.materialTemplate;
+            originalDetailDistance = terrain.detailObjectDistance;
         }
 
         currentBend = 0f;
         CurrentBend = 0f;
-        bendMaterial.SetFloat("_BendAmount", currentBend);
-
-        if (terrain != null)
-            originalDetailDistance = terrain.detailObjectDistance;
+        SetBend(0f);
 
         Collider col = GetComponent<Collider>();
         if (!col.isTrigger)
             col.isTrigger = true;
 
-        // Ensure objects start disabled
         SetBendObjectsActive(false);
     }
 
@@ -57,7 +53,7 @@ public class WorldBendTrigger : MonoBehaviour
             float target = playerInside ? targetBend : 0f;
             currentBend = Mathf.Lerp(currentBend, target, Time.deltaTime * blendSpeed);
             CurrentBend = currentBend;
-            bendMaterial.SetFloat("_BendAmount", currentBend);
+            SetBend(currentBend);
 
             if (terrain != null)
             {
@@ -71,9 +67,7 @@ public class WorldBendTrigger : MonoBehaviour
         else if (activeTrigger == null && CurrentBend > 0f)
         {
             CurrentBend = Mathf.Lerp(CurrentBend, 0f, Time.deltaTime * blendSpeed);
-
-            if (bendMaterial != null)
-                bendMaterial.SetFloat("_BendAmount", CurrentBend);
+            SetBend(CurrentBend);
 
             if (terrain != null)
                 terrain.detailObjectDistance =
@@ -81,6 +75,17 @@ public class WorldBendTrigger : MonoBehaviour
 
             SetBendObjectsActive(false);
         }
+    }
+
+    void SetBend(float value)
+    {
+        // Set on the old material if still assigned
+        if (bendMaterial != null)
+            bendMaterial.SetFloat("_BendAmount", value);
+
+        // Set directly on the terrain's material
+        if (terrainMaterial != null)
+            terrainMaterial.SetFloat("_BendAmount", value);
     }
 
     void OnTriggerEnter(Collider other)

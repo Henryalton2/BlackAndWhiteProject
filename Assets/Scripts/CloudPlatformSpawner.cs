@@ -40,9 +40,8 @@ public class CloudPlatformSpawner : MonoBehaviour
 
     bool IsOnTerrain()
     {
-        int layerMask = ~((1 << 6) | (1 << 3)); // ignore Player (6) and Cloud (3)
         RaycastHit hit;
-        bool didHit = Physics.Raycast(groundCheck.position, Vector3.down, out hit, 0.5f, layerMask);
+        bool didHit = Physics.Raycast(groundCheck.position, Vector3.down, out hit, 0.5f, terrainMask);
         if (didHit)
             Debug.Log("[CloudSpawner] Raycast hit: " + hit.collider.gameObject.name + " layer: " + hit.collider.gameObject.layer);
         else

@@ -1,53 +1,77 @@
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 
 public static class WorldShaderTools
 {
-    // Change this to your actual terrain/world material
-    private static string materialPath = "Assets/art/Triplanarfix.mat";
+    // ── collect every material that needs updating ───────────────────────
 
-    private static Material GetMaterial()
+    static List<Material> GetWorldMaterials()
     {
-        return AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+        var mats = new List<Material>();
+
+        // Terrain material (whatever is currently assigned)
+        Terrain terrain = Object.FindObjectOfType<Terrain>();
+        if (terrain != null && terrain.materialTemplate != null)
+            mats.Add(terrain.materialTemplate);
+
+        // Any additional named materials kept for legacy reasons
+        string[] extraPaths = new[]
+        {
+            "Assets/art/Triplanarfix.mat",
+            "Assets/art/Triplanarfix 1.mat",
+            "Assets/Shaders/TriplanarPaintable.mat",
+        };
+
+        foreach (string path in extraPaths)
+        {
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m != null && !mats.Contains(m))
+                mats.Add(m);
+        }
+
+        return mats;
     }
 
-    [MenuItem("World Tools/Set World Bend To 0")]
-    public static void SetWorldBendZero()
+    static void SetOnAll(string property, float value)
     {
-        Material mat = GetMaterial();
-        if (mat != null)
+        var mats = GetWorldMaterials();
+        if (mats.Count == 0)
         {
-            mat.SetFloat("_BendAmount", 0f);
-            EditorUtility.SetDirty(mat);
-            Debug.Log("World Bend set to 0");
+            Debug.LogWarning("WorldShaderTools: no materials found.");
+            return;
         }
-        else
+
+        foreach (var mat in mats)
         {
-            Debug.LogError("Material not found. Check materialPath.");
+            if (mat.HasProperty(property))
+            {
+                mat.SetFloat(property, value);
+                EditorUtility.SetDirty(mat);
+            }
         }
     }
+
+    // ── menu items ───────────────────────────────────────────────────────
 
     [MenuItem("World Tools/Set Day")]
     public static void SetDay()
     {
-        Material mat = GetMaterial();
-        if (mat != null)
-        {
-            mat.SetFloat("_Invert", 0f);
-            EditorUtility.SetDirty(mat);
-            Debug.Log("Set to Day");
-        }
+        SetOnAll("_Invert", 0f);
+        Debug.Log("Set to Day");
     }
 
     [MenuItem("World Tools/Set Night")]
     public static void SetNight()
     {
-        Material mat = GetMaterial();
-        if (mat != null)
-        {
-            mat.SetFloat("_Invert", 1f);
-            EditorUtility.SetDirty(mat);
-            Debug.Log("Set to Night");
-        }
+        SetOnAll("_Invert", 1f);
+        Debug.Log("Set to Night");
+    }
+
+    [MenuItem("World Tools/Set World Bend To 0")]
+    public static void SetWorldBendZero()
+    {
+        SetOnAll("_BendAmount", 0f);
+        Debug.Log("World Bend set to 0");
     }
 }

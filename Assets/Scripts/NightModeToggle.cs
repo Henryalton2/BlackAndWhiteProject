@@ -44,6 +44,10 @@ public class NightModeToggle : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.N))
         {
+            // Re-scan before toggling so any objects enabled since Start
+            // (e.g. trees toggled on mid-session) are included in the transition.
+            CacheInitialObjects();
+
             nightMode = !nightMode;
 
             if (transitionCoroutine != null)
@@ -57,10 +61,20 @@ public class NightModeToggle : MonoBehaviour
 
     void CacheInitialObjects()
     {
-        GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(invertTag);
+        // FindGameObjectsWithTag skips inactive objects, so trees that start
+        // disabled are missed. Search by renderer type with includeInactive:true
+        // instead, and only add objects not already in the lists.
+        foreach (var mr in FindObjectsOfType<MeshRenderer>(true))
+            if (mr.CompareTag(invertTag) && !meshRenderers.Contains(mr))
+                meshRenderers.Add(mr);
 
-        foreach (var go in taggedObjects)
-            RegisterObject(go);
+        foreach (var sr in FindObjectsOfType<SpriteRenderer>(true))
+            if (sr.CompareTag(invertTag) && !spriteRenderers.Contains(sr))
+                spriteRenderers.Add(sr);
+
+        foreach (var t in FindObjectsOfType<Terrain>(true))
+            if (t.CompareTag(invertTag) && !terrains.Contains(t))
+                terrains.Add(t);
     }
 
     public void RegisterObject(GameObject obj)
@@ -120,6 +134,8 @@ public class NightModeToggle : MonoBehaviour
 
     void ApplyInvert(float invertValue)
     {
+        if (mpb == null) mpb = new MaterialPropertyBlock();
+
         // Sprites
         foreach (var sr in spriteRenderers)
         {
