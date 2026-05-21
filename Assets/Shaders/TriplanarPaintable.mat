@@ -81,7 +81,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BendAmount: 0
+    - _BendAmount: 0.0019999999
     - _DayTiling: 1
     - _Height1: 168
     - _Height2: 124
