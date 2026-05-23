@@ -26,6 +26,8 @@ public class PlayerMovement : MonoBehaviour
     [Header("Slope")]
     [SerializeField] private float maxJumpSlopeAngle = 45f;
     [SerializeField] private float slideForce = 12f;
+    [Range(1f, 20f)]
+    [SerializeField] private float slideSmoothSpeed = 8f;
 
     public bool isWalking;
     public bool isRunningState;
@@ -39,7 +41,9 @@ public class PlayerMovement : MonoBehaviour
     private CharacterController characterController;
     private Vector3 moveDirection = Vector3.zero;
     private Vector3 externalVelocity = Vector3.zero;
-    private Vector3 lastContactNormal = Vector3.up;
+    private Vector3 lastContactNormal  = Vector3.up;
+    private Vector3 smoothedNormal     = Vector3.up;
+    private Vector3 slideVelocity      = Vector3.zero;
 
     private float rotationX = 0f;
     private float originalWalkSpeed;
@@ -118,12 +122,17 @@ public class PlayerMovement : MonoBehaviour
 
         moveDirection = (forward * curSpeedX) + (right * curSpeedZ);
 
-        float slopeAngle = Vector3.Angle(lastContactNormal, Vector3.up);
+        // Lerp toward the raw contact normal so the slide direction can't snap
+        // abruptly when OnControllerColliderHit fires from different geometry faces.
+        smoothedNormal = Vector3.Lerp(smoothedNormal, lastContactNormal, Time.deltaTime * slideSmoothSpeed);
+
+        float slopeAngle = Vector3.Angle(smoothedNormal, Vector3.up);
         bool onSteepSlope = characterController.isGrounded && slopeAngle > maxJumpSlopeAngle;
 
         if (characterController.isGrounded)
         {
-            if (movementY < 0)
+            // Don't reset Y while sliding — the slide vector handles vertical movement.
+            if (movementY < 0 && !onSteepSlope)
                 movementY = -2f;
 
             if (!onSteepSlope && Input.GetButtonDown("Jump") && canMove)
@@ -135,9 +144,21 @@ public class PlayerMovement : MonoBehaviour
 
         if (onSteepSlope)
         {
-            Vector3 slideDir = Vector3.ProjectOnPlane(Vector3.down, lastContactNormal).normalized;
-            moveDirection.x += slideDir.x * slideForce;
-            moveDirection.z += slideDir.z * slideForce;
+            Vector3 slideDir    = Vector3.ProjectOnPlane(Vector3.down, smoothedNormal).normalized;
+            Vector3 slideTarget = slideDir * slideForce;
+            slideVelocity = Vector3.MoveTowards(slideVelocity, slideTarget, slideForce * slideSmoothSpeed * Time.deltaTime);
+
+            // Apply the full slide vector including Y so the player moves *along*
+            // the slope surface rather than being pushed into it by separate gravity.
+            moveDirection.x += slideVelocity.x;
+            moveDirection.z += slideVelocity.z;
+            moveDirection.y  = slideVelocity.y;
+        }
+        else
+        {
+            slideVelocity = Vector3.Lerp(slideVelocity, Vector3.zero, Time.deltaTime * slideSmoothSpeed);
+            moveDirection.x += slideVelocity.x;
+            moveDirection.z += slideVelocity.z;
         }
 
         moveDirection += externalVelocity;
@@ -178,11 +199,18 @@ public class PlayerMovement : MonoBehaviour
         moveDirection += boost;
     }
 
-    // Called by ClimbingController when the player releases the rope,
+    // Called by ClimbingController when the player releases the wall,
     // so they don't plummet at whatever vertical speed they had before grabbing.
     public void ResetVerticalVelocity()
     {
         moveDirection.y = 0f;
+    }
+
+    // Called by ClimbingController for wall jumps — sets a clean upward velocity
+    // the same way a normal jump does, so gravity takes over naturally from there.
+    public void SetVerticalVelocity(float y)
+    {
+        moveDirection.y = y;
     }
 
     void OnDrawGizmosSelected()

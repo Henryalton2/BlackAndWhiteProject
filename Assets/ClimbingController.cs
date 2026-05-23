@@ -20,6 +20,7 @@ public class ClimbingController : MonoBehaviour
     [Header("Auto Climb")]
     public bool autoClimb = true;
     [Range(30f, 85f)] public float autoClimbSlopeAngle = 60f;   // should be above PlayerMovement.maxJumpSlopeAngle (45°)
+    [Range(5f, 45f)]  public float stopClimbAngle      = 30f;   // stop climbing when surface is this flat (separate from auto-climb threshold)
 
     [Header("Rotation")]
     public float rotationSnapSpeed = 8f;
@@ -27,6 +28,10 @@ public class ClimbingController : MonoBehaviour
     [Header("Look")]
     public float lookSpeed = 2f;
     public float lookXLimit = 60f;
+
+    [Header("Wall Jump")]
+    public float wallJumpOutForce = 6f;
+    public float wallJumpUpForce  = 7f;
 
     [Header("Stamina")]
     public float maxStamina = 30f;
@@ -57,7 +62,7 @@ public class ClimbingController : MonoBehaviour
     private const float AutoClimbCooldownDuration = 0.6f;
 
     [Header("Grace Period")]
-    [Range(0f, 1f)] public float climbGracePeriod = 0.25f;
+    [Range(0f, 3f)] public float climbGracePeriod = 0.25f;
 
     private float _climbStartTime = 0f;
 
@@ -65,7 +70,9 @@ public class ClimbingController : MonoBehaviour
     private RaycastHit[] hitBuffer = new RaycastHit[16];
     private Collider[] overlapBuffer = new Collider[16];
 
-    private Text staminaText;
+    private RectTransform staminaBarFillRect;
+    private const float BarMaxWidth = 150f;
+    private const float BarHeight   = 10f;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────
 
@@ -120,11 +127,10 @@ public class ClimbingController : MonoBehaviour
         if (!isClimbing && cc.isGrounded)
             Stamina = Mathf.Min(maxStamina, Stamina + staminaRecovery * Time.deltaTime);
 
-        if (staminaText != null)
+        if (staminaBarFillRect != null)
         {
-            staminaText.gameObject.SetActive(isClimbing);
-            if (isClimbing)
-                staminaText.text = Stamina.ToString("F1") + "s";
+            float fraction = maxStamina > 0f ? Stamina / maxStamina : 0f;
+            staminaBarFillRect.sizeDelta = new Vector2(BarMaxWidth * fraction, BarHeight);
         }
 
         if (!isClimbing)
@@ -144,6 +150,18 @@ public class ClimbingController : MonoBehaviour
 
         if (Input.GetKeyDown(climbKey)) { StopClimbing(); return; }
 
+        // Wall jump — only on steep surfaces
+        if (Input.GetButtonDown("Jump"))
+        {
+            if (Vector3.Angle(surfaceNormal, Vector3.up) > autoClimbSlopeAngle)
+            {
+                StopClimbing();
+                playerMovement?.SetVerticalVelocity(wallJumpUpForce);
+                playerMovement?.ApplyExternalVelocity(surfaceNormal * wallJumpOutForce);
+            }
+            return;
+        }
+
         // General proximity check — if the player has floated away from all
         // surfaces (glitch, edge case), kick them out immediately.
         if (!NearAnySurface(transform.position + Vector3.up, grabReach))
@@ -160,13 +178,17 @@ public class ClimbingController : MonoBehaviour
             wallUp = Vector3.ProjectOnPlane(transform.forward, surfaceNormal).normalized;
         Vector3 wallRight = Vector3.Cross(surfaceNormal, wallUp).normalized;
 
-        // Cast length scales with surfaceOffset so player never drifts out of range
-        float castLength = surfaceOffset + CastLift + 0.5f;
-
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
         bool hasInput = Mathf.Abs(h) > 0.1f || Mathf.Abs(v) > 0.1f;
         bool settled  = _grabProgress >= 1f;
+
+        // During the entry lerp the player may still be up to grabReach away from
+        // the wall, so extend the cast to cover the full approach distance.
+        // Once settled on the wall, the shorter range is sufficient.
+        float castLength = settled
+            ? surfaceOffset + CastLift + 0.5f
+            : grabReach    + CastLift + 0.5f;
 
         // ── Fire a new grab when settled and input held ──────────────────
         if (settled && hasInput)
@@ -184,6 +206,19 @@ public class ClimbingController : MonoBehaviour
                 _grabTo       = grabHit.point + grabHit.normal * surfaceOffset;
                 _grabProgress = 0f;
                 _armSide      = -_armSide;
+            }
+            else if (v > 0.1f)
+            {
+                // Wall face ended above — probe downward to find a ledge to pull onto.
+                Vector3 ledgeOrigin = proposed + Vector3.up * CastLift;
+                float   ledgeRange  = CastLift * 2f + climbStepDistance;
+                if (RaycastIgnoreSelf(ledgeOrigin, Vector3.down, out RaycastHit ledgeHit, ledgeRange, climbableLayers))
+                {
+                    _grabFrom     = transform.position;
+                    _grabTo       = ledgeHit.point + Vector3.up * 0.05f;  // feet just above ledge
+                    _grabProgress = 0f;
+                    _armSide      = -_armSide;
+                }
             }
         }
 
@@ -203,11 +238,11 @@ public class ClimbingController : MonoBehaviour
         if (RaycastIgnoreSelf(castOrigin, -surfaceNormal, out RaycastHit hit, castLength, climbableLayers))
         {
             // If the surface we're now tracking is flat enough to walk on, the player
-            // has crested a ledge — stop climbing. Skip this during the entry grace
-            // period: the cast can graze terrain behind the player while still lerping
-            // toward the wall, producing a false flat-surface hit.
+            // has crested a ledge — stop climbing. Require settled so we don't stop
+            // mid-lerp while pulling onto the ledge, and skip the entry grace period
+            // to avoid false hits from terrain behind the player during the approach.
             float surfaceAngle = Vector3.Angle(hit.normal, Vector3.up);
-            if (surfaceAngle < autoClimbSlopeAngle && Time.time - _climbStartTime > climbGracePeriod)
+            if (surfaceAngle < stopClimbAngle && settled && Time.time - _climbStartTime > climbGracePeriod)
             {
                 StopClimbing();
                 return;
@@ -370,24 +405,28 @@ public class ClimbingController : MonoBehaviour
         canvasGO.AddComponent<CanvasScaler>();
         canvasGO.AddComponent<GraphicRaycaster>();
 
-        GameObject textGO = new GameObject("StaminaCountdown");
-        textGO.transform.SetParent(canvasGO.transform, false);
+        // ── Background track ────────────────────────────────────────────────
+        GameObject bgGO = new GameObject("StaminaBarBG");
+        bgGO.transform.SetParent(canvasGO.transform, false);
+        Image bgImg = bgGO.AddComponent<Image>();
+        bgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.85f);
+        RectTransform bgRect = bgGO.GetComponent<RectTransform>();
+        bgRect.anchorMin        = new Vector2(0f, 0f);
+        bgRect.anchorMax        = new Vector2(0f, 0f);
+        bgRect.pivot            = new Vector2(0f, 0f);
+        bgRect.anchoredPosition = new Vector2(20f, 20f);
+        bgRect.sizeDelta        = new Vector2(BarMaxWidth, BarHeight);
 
-        staminaText = textGO.AddComponent<Text>();
-        staminaText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
-                        ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
-        staminaText.fontSize = 28;
-        staminaText.fontStyle = FontStyle.Bold;
-        staminaText.color = Color.white;
-        staminaText.alignment = TextAnchor.MiddleCenter;
-
-        RectTransform rt = textGO.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0.5f, 0.5f);
-        rt.anchorMax = new Vector2(0.5f, 0.5f);
-        rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = Vector2.zero;
-        rt.sizeDelta = new Vector2(220f, 50f);
-
-        staminaText.gameObject.SetActive(false);
+        // ── Fill bar ────────────────────────────────────────────────────────
+        GameObject fillGO = new GameObject("StaminaBarFill");
+        fillGO.transform.SetParent(bgGO.transform, false);
+        Image fillImg = fillGO.AddComponent<Image>();
+        fillImg.color = Color.white;
+        staminaBarFillRect             = fillGO.GetComponent<RectTransform>();
+        staminaBarFillRect.anchorMin   = new Vector2(0f, 0f);
+        staminaBarFillRect.anchorMax   = new Vector2(0f, 0f);
+        staminaBarFillRect.pivot       = new Vector2(0f, 0f);
+        staminaBarFillRect.anchoredPosition = Vector2.zero;
+        staminaBarFillRect.sizeDelta   = new Vector2(BarMaxWidth, BarHeight);
     }
 }
