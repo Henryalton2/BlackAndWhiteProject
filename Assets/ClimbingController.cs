@@ -276,7 +276,10 @@ public class ClimbingController : MonoBehaviour
 
     void TryStartClimbing(bool requireFacing = true)
     {
-        Vector3 center = transform.position + Vector3.up * 1.0f;
+        // Cast at eye/camera height so wall detection matches where the player is looking.
+        Vector3 center = new Vector3(transform.position.x,
+                                     playerCamera.transform.position.y,
+                                     transform.position.z);
         float minY = Mathf.Sin(MaxCeilingAngle * Mathf.Deg2Rad);
 
         float bestDist = float.MaxValue;
@@ -315,8 +318,11 @@ public class ClimbingController : MonoBehaviour
         // Don't teleport the player — lerp them onto the wall instead.
         // This avoids the Y conflict with the surface tracking snap and
         // prevents the camera jumping on entry.
+        // Cast at camera height found the correct wall point, but we only want
+        // the XZ offset — keep Y at foot level so the player doesn't float up.
         _grabFrom     = transform.position;
         _grabTo       = bestPoint + bestNormal * surfaceOffset;
+        _grabTo.y     = transform.position.y;   // keep feet at current height; camera stays put
         _grabProgress = 0f;   // start lerping immediately
         _armSide      = 1;
 

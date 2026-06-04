@@ -29,6 +29,47 @@ public class PlayerMovement : MonoBehaviour
     [Range(1f, 20f)]
     [SerializeField] private float slideSmoothSpeed = 8f;
 
+    [Header("Bhop")]
+    public bool bhopEnabled = false;
+    public float bhopSpeedLimit = 15f;
+    [Range(0.5f, 5f)]
+    public float bhopAcceleration = 1f;
+
+    [Header("Speed FOV")]
+    public float baseFOV = 60f;
+    public float maxFOV = 75f;
+    [Range(1f, 10f)]
+    public float fovLerpSpeed = 5f;
+
+    [Header("Speed Camera Shake")]
+    public float shakeIntensity = 0.04f;
+    [Range(1f, 30f)]
+    public float shakeFrequency = 12f;
+
+    [Header("Head Bob")]
+    public float bobFrequency = 2.4f;
+    public float bobAmplitudeY = 0.05f;
+
+    [Header("Landing Squish")]
+    public float squishAmount = 0.12f;
+    [Range(1f, 20f)]
+    public float squishRecovery = 10f;
+
+    [Header("Strafe Tilt")]
+    public float maxStrafeTilt = 4f;
+    [Range(1f, 15f)]
+    public float strafeTiltSpeed = 8f;
+
+    [Header("Jump Sway")]
+    public float jumpSwayAmount = 0.08f;
+    [Range(1f, 15f)]
+    public float jumpSwayDecay = 7f;
+
+    [Header("Crouch Camera")]
+    public float crouchCameraOffset = 0.5f;
+    [Range(1f, 20f)]
+    public float crouchLerpSpeed = 12f;
+
     public bool isWalking;
     public bool isRunningState;
     public bool isCrouching;
@@ -50,6 +91,19 @@ public class PlayerMovement : MonoBehaviour
     private float originalRunSpeed;
     private bool canMove = true;
     private bool wasClimbing = false;
+    private float _bhopBonus = 0f;
+    private float _shakeTime = 0f;
+    private Vector3 _cameraBaseLocalPos;
+    private Vector3 _shakeOffset;
+
+    // Camera effect state
+    private float _bobTimer        = 0f;
+    private float _bobY            = 0f;
+    private float _squishOffset    = 0f;
+    private float _strafeTilt      = 0f;
+    private float _jumpSwayOffset  = 0f;
+    private float _crouchOffset    = 0f;
+    private bool  _wasGrounded     = false;
 
     void Start()
     {
@@ -58,6 +112,7 @@ public class PlayerMovement : MonoBehaviour
         Cursor.visible = false;
         originalWalkSpeed = walkSpeed;
         originalRunSpeed = runSpeed;
+        _cameraBaseLocalPos = playerCamera.transform.localPosition;
     }
 
     void Update()
@@ -78,6 +133,17 @@ public class PlayerMovement : MonoBehaviour
 
         HandleMovement();
         HandleLook();
+        HandleFOV();
+
+        bool grounded = characterController.isGrounded;
+        UpdateHeadBob(grounded);
+        UpdateLandingSquish(grounded);
+        UpdateJumpSway(grounded);
+        UpdateStrafeTilt();
+        UpdateCrouchOffset();
+        HandleCameraShake();
+        ApplyCameraEffects();
+        _wasGrounded = grounded;
     }
 
     private void FixedUpdate()
@@ -135,8 +201,19 @@ public class PlayerMovement : MonoBehaviour
             if (movementY < 0 && !onSteepSlope)
                 movementY = -2f;
 
-            if (!onSteepSlope && Input.GetButtonDown("Jump") && canMove)
+            // Bhop: hold space to auto-jump; single press otherwise
+            bool wantsJump = bhopEnabled ? Input.GetButton("Jump") : Input.GetButtonDown("Jump");
+
+            if (!onSteepSlope && wantsJump && canMove)
+            {
                 movementY = jumpPower;
+                if (bhopEnabled)
+                    _bhopBonus = Mathf.Min(_bhopBonus + bhopAcceleration, bhopSpeedLimit);
+            }
+            else if (bhopEnabled && !Input.GetButton("Jump"))
+            {
+                _bhopBonus = 0f;   // landed without jumping — chain broken
+            }
         }
 
         movementY -= gravity * Time.deltaTime;
@@ -159,6 +236,33 @@ public class PlayerMovement : MonoBehaviour
             slideVelocity = Vector3.Lerp(slideVelocity, Vector3.zero, Time.deltaTime * slideSmoothSpeed);
             moveDirection.x += slideVelocity.x;
             moveDirection.z += slideVelocity.z;
+        }
+
+        // Bhop speed boost — applied to XZ only
+        if (bhopEnabled && _bhopBonus > 0f)
+        {
+            Vector3 flat = new Vector3(moveDirection.x, 0f, moveDirection.z);
+            if (flat.magnitude > 0.1f)
+            {
+                Vector3 boosted = flat + flat.normalized * _bhopBonus;
+                if (boosted.magnitude > bhopSpeedLimit)
+                    boosted = boosted.normalized * bhopSpeedLimit;
+                moveDirection.x = boosted.x;
+                moveDirection.z = boosted.z;
+            }
+        }
+
+        // Hard cap: when bhop is on, total XZ speed never exceeds the limit —
+        // this catches sprint speed bleeding in even without a bonus active.
+        if (bhopEnabled)
+        {
+            Vector3 flat = new Vector3(moveDirection.x, 0f, moveDirection.z);
+            if (flat.magnitude > bhopSpeedLimit)
+            {
+                flat = flat.normalized * bhopSpeedLimit;
+                moveDirection.x = flat.x;
+                moveDirection.z = flat.z;
+            }
         }
 
         moveDirection += externalVelocity;
@@ -184,8 +288,7 @@ public class PlayerMovement : MonoBehaviour
 
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-
-        playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
+        // Camera rotation is applied in ApplyCameraEffects so effects can be composed cleanly.
         transform.rotation *= Quaternion.Euler(0f, Input.GetAxis("Mouse X") * lookSpeed, 0f);
     }
 
@@ -211,6 +314,95 @@ public class PlayerMovement : MonoBehaviour
     public void SetVerticalVelocity(float y)
     {
         moveDirection.y = y;
+    }
+
+    private void HandleCameraShake()
+    {
+        float hSpeed = new Vector3(characterController.velocity.x, 0f, characterController.velocity.z).magnitude;
+        float maxSpeed = bhopEnabled ? bhopSpeedLimit : runSpeed;
+        float t = Mathf.Clamp01(hSpeed / maxSpeed);
+
+        _shakeTime += Time.deltaTime * shakeFrequency;
+
+        // Perlin noise gives smooth, organic motion — offset by large values on each
+        // axis so X and Y noise don't look identical.
+        float intensity = shakeIntensity * t;
+        float x = (Mathf.PerlinNoise(_shakeTime,        0f) - 0.5f) * 2f * intensity;
+        float y = (Mathf.PerlinNoise(0f, _shakeTime + 100f) - 0.5f) * 2f * intensity;
+
+        _shakeOffset = new Vector3(x, y, 0f);
+    }
+
+    private void HandleFOV()
+    {
+        float hSpeed = new Vector3(characterController.velocity.x, 0f, characterController.velocity.z).magnitude;
+        float maxSpeed = bhopEnabled ? bhopSpeedLimit : runSpeed;
+        float t = Mathf.Clamp01(hSpeed / maxSpeed);
+        float targetFOV = Mathf.Lerp(baseFOV, maxFOV, t);
+        playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, targetFOV, Time.deltaTime * fovLerpSpeed);
+    }
+
+    // ── Head bob ──────────────────────────────────────────────────────────────
+    private void UpdateHeadBob(bool grounded)
+    {
+        bool moving = grounded && (isWalking || isRunningState);
+        if (moving)
+        {
+            float freq = isRunningState ? bobFrequency * 1.6f : bobFrequency;
+            _bobTimer += Time.deltaTime * freq;
+            float amp = bobAmplitudeY * (isRunningState ? 1.4f : 1f);
+            _bobY = Mathf.Sin(_bobTimer * Mathf.PI * 2f) * amp;
+        }
+        else
+        {
+            _bobY = Mathf.Lerp(_bobY, 0f, Time.deltaTime * 10f);
+        }
+    }
+
+    // ── Landing squish ────────────────────────────────────────────────────────
+    private void UpdateLandingSquish(bool grounded)
+    {
+        if (!_wasGrounded && grounded)
+            _squishOffset = -squishAmount;      // snap down on impact
+
+        _squishOffset = Mathf.Lerp(_squishOffset, 0f, Time.deltaTime * squishRecovery);
+    }
+
+    // ── Jump sway ─────────────────────────────────────────────────────────────
+    private void UpdateJumpSway(bool grounded)
+    {
+        // Detect the moment of leaving the ground with upward velocity (a jump, not a walk-off)
+        if (!grounded && _wasGrounded && characterController.velocity.y > 1f)
+            _jumpSwayOffset = jumpSwayAmount;
+
+        _jumpSwayOffset = Mathf.Lerp(_jumpSwayOffset, 0f, Time.deltaTime * jumpSwayDecay);
+    }
+
+    // ── Strafe tilt ───────────────────────────────────────────────────────────
+    private void UpdateStrafeTilt()
+    {
+        float targetTilt = -Input.GetAxis("Horizontal") * maxStrafeTilt;
+        _strafeTilt = Mathf.Lerp(_strafeTilt, targetTilt, Time.deltaTime * strafeTiltSpeed);
+    }
+
+    // ── Crouch camera lerp ────────────────────────────────────────────────────
+    private void UpdateCrouchOffset()
+    {
+        float target = isCrouching ? -crouchCameraOffset : 0f;
+        _crouchOffset = Mathf.Lerp(_crouchOffset, target, Time.deltaTime * crouchLerpSpeed);
+    }
+
+    // ── Compose and apply all camera effects ──────────────────────────────────
+    private void ApplyCameraEffects()
+    {
+        // Position: base + every vertical offset + shake
+        float totalY = _bobY + _squishOffset + _jumpSwayOffset + _crouchOffset + _shakeOffset.y;
+        playerCamera.transform.localPosition = _cameraBaseLocalPos + new Vector3(_shakeOffset.x, totalY, 0f);
+
+        // Rotation: look tilt (up/down) composed with strafe roll
+        Quaternion lookRot  = Quaternion.Euler(rotationX, 0f, 0f);
+        Quaternion tiltRot  = Quaternion.Euler(0f, 0f, _strafeTilt);
+        playerCamera.transform.localRotation = lookRot * tiltRot;
     }
 
     void OnDrawGizmosSelected()
