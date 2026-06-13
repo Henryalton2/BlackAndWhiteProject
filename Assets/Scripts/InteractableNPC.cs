@@ -1,15 +1,23 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
-using System.Collections.Generic;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 [System.Serializable]
-public class DialogueSection
+public class DialogueChoice
 {
-    public string sectionName;
-    [TextArea(3, 10)] public string[] dialogueLines;
-    public int revealNameAtLine = -1;
-    public bool hasBeenPlayed = false;
+    public string choiceText;
+    public int nextLineIndex = -1; // -1 means end dialogue, otherwise jump to that line number
+    public UnityEvent onChoiceSelected;
+}
+
+[System.Serializable]
+public class DialogueLine
+{
+    [TextArea(3, 10)] public string text;
+    public bool hasChoices;
+    public DialogueChoice[] choices;
 }
 
 public class InteractableNPC : MonoBehaviour
@@ -17,27 +25,15 @@ public class InteractableNPC : MonoBehaviour
     [Header("NPC Settings")]
     [SerializeField] private string npcName = "NPC";
     [SerializeField] private string initialName = "???";
+    [SerializeField] private int revealNameAtLine = -1;
     [SerializeField] private float interactionDistance = 3f;
+    [SerializeField] private Vector3 interactionOffset;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private bool showDebug = false;
 
-    [Header("Dialogue Sections")]
-    [SerializeField] private List<DialogueSection> dialogueSections = new List<DialogueSection>();
-    [SerializeField] private int currentSectionIndex = 0;
-
-    [Header("Repeat Dialogue")]
-    [Tooltip("This dialogue plays when talking to NPC after completing current section but before unlocking next")]
-    [SerializeField][TextArea(3, 10)] private string[] repeatDialogue;
-
-    [Header("Settings")]
+    [Header("Dialogue")]
+    [SerializeField] private DialogueLine[] dialogueLines;
     [SerializeField] private float typingSpeed = 0.05f;
-
-    [Header("Audio")]
-    [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioClip typingSFX;
-    [SerializeField] private bool playSFXOnEveryLetter = true;
-    [Tooltip("Play sound every N letters (1 = every letter, 2 = every other letter, etc.)")]
-    [SerializeField] private int sfxFrequency = 1;
 
     [Header("UI References")]
     [SerializeField] private GameObject promptUI;
@@ -46,314 +42,452 @@ public class InteractableNPC : MonoBehaviour
     [SerializeField] private TextMeshProUGUI dialogueText;
     [SerializeField] private TextMeshProUGUI npcNameText;
 
+    [Header("Choice Buttons - Pre-made in Unity")]
+    [SerializeField] private GameObject choiceContainer;
+    [SerializeField] private Button choiceButton1;
+    [SerializeField] private Button choiceButton2;
+    [SerializeField] private Button choiceButton3;
+    [SerializeField] private Button choiceButton4;
+
+    [Header("Pause Menu (Optional - to hide during dialogue)")]
+    [SerializeField] private GameObject pauseMenu;
+
+    [Header("Camera Lock (Optional - drag your camera here)")]
+    [SerializeField] private GameObject cameraToLock; // Just drag your Main Camera here!
+
     private Transform player;
-    private bool isInRange = false;
-    private bool isDialogueActive = false;
-    private int currentLineIndex = 0;
+    private bool isInRange;
+    private bool isDialogueActive;
+    private int currentLineIndex;
     private Coroutine typingCoroutine;
     private string currentDisplayName;
-    private string[] currentDialogueLines;
+    private bool isShowingChoices;
+    private DialogueChoice[] currentChoices;
+    private Button[] allButtons;
 
     void Start()
     {
-        // Find player
+        ValidateReferences();
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
-        {
             player = playerObj.transform;
+        else if (showDebug)
+            Debug.LogWarning($"[{gameObject.name}] No GameObject with 'Player' tag found!");
+
+        currentDisplayName = string.IsNullOrEmpty(initialName) ? npcName : initialName;
+
+        if (promptUI != null) promptUI.SetActive(false);
+        if (dialogueUI != null) dialogueUI.SetActive(false);
+        if (choiceContainer != null) choiceContainer.SetActive(false);
+
+        if (promptText != null)
+            promptText.text = $"Press {interactKey} to talk to {currentDisplayName}";
+
+        // Store all buttons in array for easy access
+        allButtons = new Button[] { choiceButton1, choiceButton2, choiceButton3, choiceButton4 };
+
+        // Set up button click listeners
+        SetupButtons();
+    }
+
+    void SetupButtons()
+    {
+        Debug.Log($"[{gameObject.name}] Setting up buttons...");
+
+        // Check for EventSystem
+        if (UnityEngine.EventSystems.EventSystem.current == null)
+        {
+            Debug.LogError($"[{gameObject.name}] NO EVENTSYSTEM FOUND! Buttons will not work. Creating one now.");
+            GameObject eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+        }
+        else
+        {
+            Debug.Log($"[{gameObject.name}] EventSystem found: {UnityEngine.EventSystems.EventSystem.current.name}");
         }
 
-        // Set up audio source if not assigned
-        if (audioSource == null)
+        // Check for GraphicRaycaster on Canvas
+        if (choiceContainer != null)
         {
-            audioSource = GetComponent<AudioSource>();
-            if (audioSource == null && typingSFX != null)
+            Canvas canvas = choiceContainer.GetComponentInParent<Canvas>();
+            if (canvas != null)
             {
-                audioSource = gameObject.AddComponent<AudioSource>();
-                audioSource.playOnAwake = false;
+                GraphicRaycaster raycaster = canvas.GetComponent<GraphicRaycaster>();
+                if (raycaster == null)
+                {
+                    Debug.LogError($"[{gameObject.name}] Canvas '{canvas.name}' has NO GraphicRaycaster! Adding one now.");
+                    canvas.gameObject.AddComponent<GraphicRaycaster>();
+                }
+                else
+                {
+                    Debug.Log($"[{gameObject.name}] GraphicRaycaster found on Canvas: {canvas.name}");
+                }
             }
         }
 
-        // Set initial display name
-        currentDisplayName = string.IsNullOrEmpty(initialName) ? npcName : initialName;
-
-        // Hide UI at start
-        if (promptUI != null) promptUI.SetActive(false);
-        if (dialogueUI != null) dialogueUI.SetActive(false);
-
-        // Set prompt text
-        if (promptText != null)
+        for (int i = 0; i < allButtons.Length; i++)
         {
-            promptText.text = $"Press {interactKey} to talk to {currentDisplayName}";
+            if (allButtons[i] != null)
+            {
+                int index = i; // Capture index for closure
+                allButtons[i].onClick.RemoveAllListeners();
+                allButtons[i].onClick.AddListener(() => {
+                    Debug.Log($"[{gameObject.name}] *** BUTTON {index + 1} CLICKED! ***");
+                    SelectChoice(index);
+                });
+                allButtons[i].gameObject.SetActive(false); // Hide all buttons initially
+                allButtons[i].interactable = true; // Ensure button is interactable
+
+                Debug.Log($"[{gameObject.name}] Button {i + 1} setup complete. Interactable: {allButtons[i].interactable}");
+            }
+            else
+            {
+                Debug.LogWarning($"[{gameObject.name}] Button {i + 1} is NULL!");
+            }
         }
+    }
+
+    void ValidateReferences()
+    {
+        if (dialogueLines == null || dialogueLines.Length == 0)
+            Debug.LogError($"[{gameObject.name}] No dialogue lines assigned!");
+
+        if (promptUI == null)
+            Debug.LogWarning($"[{gameObject.name}] Prompt UI not assigned!");
+
+        if (dialogueUI == null)
+            Debug.LogWarning($"[{gameObject.name}] Dialogue UI not assigned!");
+
+        if (dialogueText == null)
+            Debug.LogError($"[{gameObject.name}] Dialogue Text not assigned!");
+
+        if (npcNameText == null)
+            Debug.LogWarning($"[{gameObject.name}] NPC Name Text not assigned - name display will not work!");
+
+        if (choiceContainer == null)
+            Debug.LogWarning($"[{gameObject.name}] Choice Container not assigned - choices will not work!");
+
+        if (choiceButton1 == null)
+            Debug.LogWarning($"[{gameObject.name}] Choice Button 1 not assigned!");
+        if (choiceButton2 == null)
+            Debug.LogWarning($"[{gameObject.name}] Choice Button 2 not assigned!");
+        if (choiceButton3 == null)
+            Debug.LogWarning($"[{gameObject.name}] Choice Button 3 not assigned!");
+        if (choiceButton4 == null)
+            Debug.LogWarning($"[{gameObject.name}] Choice Button 4 not assigned!");
     }
 
     void Update()
     {
-        if (player == null)
+        if (player == null) return;
+
+        Vector3 interactionPoint = transform.position + interactionOffset;
+        float distance = Vector3.Distance(interactionPoint, player.position);
+        isInRange = distance <= interactionDistance;
+
+        if (isDialogueActive && !isInRange)
         {
-            if (showDebug) Debug.LogWarning($"{npcName}: Player not found!");
+            EndDialogue();
             return;
         }
 
-        // Check distance to player
-        float distance = Vector3.Distance(transform.position, player.position);
-        isInRange = distance <= interactionDistance;
-
-        if (showDebug)
-        {
-            Debug.Log($"{npcName}: Distance = {distance:F2}, In Range = {isInRange}, Current Section = {currentSectionIndex}");
-        }
-
-        // Show/hide prompt
         if (promptUI != null && !isDialogueActive)
-        {
             promptUI.SetActive(isInRange);
-        }
 
-        // Handle interaction
         if (isInRange && Input.GetKeyDown(interactKey))
         {
             if (!isDialogueActive)
-            {
                 StartDialogue();
-            }
-            else
-            {
+            else if (!isShowingChoices)
                 ContinueDialogue();
-            }
         }
     }
 
     void StartDialogue()
     {
-        // Determine which dialogue to play
-        if (currentSectionIndex < dialogueSections.Count)
+        if (dialogueLines == null || dialogueLines.Length == 0)
         {
-            DialogueSection currentSection = dialogueSections[currentSectionIndex];
-
-            // If this section hasn't been played, play it
-            if (!currentSection.hasBeenPlayed)
-            {
-                currentDialogueLines = currentSection.dialogueLines;
-
-                if (showDebug)
-                {
-                    Debug.Log($"Playing section: {currentSection.sectionName}");
-                }
-            }
-            else
-            {
-                // Section already played, use repeat dialogue
-                currentDialogueLines = repeatDialogue;
-
-                if (showDebug)
-                {
-                    Debug.Log($"Section '{currentSection.sectionName}' already played. Using repeat dialogue.");
-                }
-            }
-        }
-        else
-        {
-            // All sections completed, use repeat dialogue
-            currentDialogueLines = repeatDialogue;
-
-            if (showDebug)
-            {
-                Debug.Log("All sections completed. Using repeat dialogue.");
-            }
-        }
-
-        if (currentDialogueLines == null || currentDialogueLines.Length == 0)
-        {
-            if (showDebug) Debug.LogWarning("No dialogue lines available!");
+            Debug.LogError($"[{gameObject.name}] Cannot start dialogue - no dialogue lines!");
             return;
         }
 
         isDialogueActive = true;
         currentLineIndex = 0;
 
-        // Hide prompt, show dialogue
         if (promptUI != null) promptUI.SetActive(false);
         if (dialogueUI != null) dialogueUI.SetActive(true);
 
-        // Set NPC name
-        if (npcNameText != null)
+        // Hide pause menu if it exists
+        if (pauseMenu != null)
         {
-            npcNameText.text = currentDisplayName;
+            pauseMenu.SetActive(false);
+            Debug.Log($"[{gameObject.name}] Hiding pause menu during dialogue");
         }
 
-        // Start typing first line
-        DisplayLine(currentDialogueLines[currentLineIndex]);
+        // Disable camera control scripts
+        SetCameraControlEnabled(false);
+
+        UpdateNPCName(currentDisplayName);
+
+        DisplayLine(currentLineIndex);
     }
 
     void ContinueDialogue()
     {
-        // If still typing, complete the line instantly
         if (typingCoroutine != null)
         {
             StopCoroutine(typingCoroutine);
-            dialogueText.text = currentDialogueLines[currentLineIndex];
+            if (dialogueText != null && currentLineIndex < dialogueLines.Length)
+                dialogueText.text = dialogueLines[currentLineIndex].text;
             typingCoroutine = null;
+
+            // Check if this line has choices
+            if (currentLineIndex < dialogueLines.Length && dialogueLines[currentLineIndex].hasChoices)
+            {
+                ShowChoices(dialogueLines[currentLineIndex].choices);
+            }
             return;
         }
 
-        // Move to next line first
         currentLineIndex++;
 
-        // Check if we should reveal the name at this line (only for section dialogue)
-        if (currentSectionIndex < dialogueSections.Count &&
-            !dialogueSections[currentSectionIndex].hasBeenPlayed)
+        if (revealNameAtLine >= 0 && currentLineIndex == revealNameAtLine)
         {
-            DialogueSection currentSection = dialogueSections[currentSectionIndex];
+            currentDisplayName = npcName;
+            UpdateNPCName(currentDisplayName);
 
-            if (currentSection.revealNameAtLine >= 0 && currentLineIndex == currentSection.revealNameAtLine)
-            {
-                currentDisplayName = npcName;
-                if (npcNameText != null)
-                {
-                    npcNameText.text = currentDisplayName;
-                }
-                // Update prompt text for future interactions
-                if (promptText != null)
-                {
-                    promptText.text = $"Press {interactKey} to talk to {currentDisplayName}";
-                }
-
-                if (showDebug)
-                {
-                    Debug.Log($"Name revealed! Changed from {initialName} to {npcName}");
-                }
-            }
+            if (promptText != null)
+                promptText.text = $"Press {interactKey} to talk to {currentDisplayName}";
         }
 
-        if (currentLineIndex < currentDialogueLines.Length)
-        {
-            DisplayLine(currentDialogueLines[currentLineIndex]);
-        }
+        if (currentLineIndex < dialogueLines.Length)
+            DisplayLine(currentLineIndex);
         else
-        {
             EndDialogue();
-        }
     }
 
-    void DisplayLine(string line)
+    void UpdateNPCName(string name)
     {
-        if (typingCoroutine != null)
+        if (npcNameText != null)
+            npcNameText.text = name;
+    }
+
+    void DisplayLine(int lineIndex)
+    {
+        if (lineIndex < 0 || lineIndex >= dialogueLines.Length)
         {
-            StopCoroutine(typingCoroutine);
+            Debug.LogError($"[{gameObject.name}] Invalid dialogue line index: {lineIndex}");
+            EndDialogue();
+            return;
         }
-        typingCoroutine = StartCoroutine(TypeText(line));
+
+        if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
+
+        typingCoroutine = StartCoroutine(TypeText(dialogueLines[lineIndex].text, lineIndex));
     }
 
-    IEnumerator TypeText(string line)
+    IEnumerator TypeText(string line, int lineIndex)
     {
+        if (dialogueText == null)
+        {
+            Debug.LogError($"[{gameObject.name}] Dialogue Text is null!");
+            yield break;
+        }
+
         dialogueText.text = "";
-        int letterCount = 0;
 
         foreach (char c in line)
         {
             dialogueText.text += c;
-            letterCount++;
-
-            // Play typing sound effect
-            if (playSFXOnEveryLetter && typingSFX != null && audioSource != null)
-            {
-                // Check if we should play sound based on frequency
-                if (letterCount % sfxFrequency == 0)
-                {
-                    audioSource.PlayOneShot(typingSFX);
-                }
-            }
-
             yield return new WaitForSeconds(typingSpeed);
         }
 
         typingCoroutine = null;
+
+        // Show choices after typing is complete
+        if (lineIndex < dialogueLines.Length && dialogueLines[lineIndex].hasChoices)
+        {
+            ShowChoices(dialogueLines[lineIndex].choices);
+        }
+    }
+
+    void ShowChoices(DialogueChoice[] choices)
+    {
+        if (choiceContainer == null)
+        {
+            Debug.LogWarning($"[{gameObject.name}] Cannot show choices - missing Choice Container!");
+            return;
+        }
+
+        if (choices == null || choices.Length == 0)
+        {
+            Debug.LogWarning($"[{gameObject.name}] No choices to display!");
+            return;
+        }
+
+        currentChoices = choices;
+        isShowingChoices = true;
+        choiceContainer.SetActive(true);
+
+        Debug.Log($"[{gameObject.name}] ShowChoices: Displaying {choices.Length} buttons");
+
+        // Show and configure buttons based on number of choices
+        for (int i = 0; i < allButtons.Length; i++)
+        {
+            if (allButtons[i] != null)
+            {
+                if (i < choices.Length)
+                {
+                    // Enable button and set text
+                    allButtons[i].gameObject.SetActive(true);
+                    allButtons[i].interactable = true;
+
+                    TextMeshProUGUI buttonText = allButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+                    if (buttonText != null)
+                    {
+                        buttonText.text = choices[i].choiceText;
+                        Debug.Log($"[{gameObject.name}] Button {i + 1} enabled with text: '{choices[i].choiceText}'");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[{gameObject.name}] Button {i + 1} has no TextMeshProUGUI child!");
+                    }
+
+                    // Debug button state
+                    Image btnImage = allButtons[i].GetComponent<Image>();
+                    Debug.Log($"[{gameObject.name}] Button {i + 1} - Active: {allButtons[i].gameObject.activeSelf}, Interactable: {allButtons[i].interactable}, Has Image: {btnImage != null}, Image Raycast: {(btnImage != null ? btnImage.raycastTarget.ToString() : "N/A")}");
+                }
+                else
+                {
+                    // Hide unused buttons
+                    allButtons[i].gameObject.SetActive(false);
+                }
+            }
+        }
+
+        if (showDebug)
+            Debug.Log($"[{gameObject.name}] Showing {choices.Length} choice buttons");
+    }
+
+    void SelectChoice(int choiceIndex)
+    {
+        if (currentChoices == null || choiceIndex >= currentChoices.Length)
+        {
+            Debug.LogWarning($"[{gameObject.name}] Invalid choice index: {choiceIndex}");
+            return;
+        }
+
+        DialogueChoice selectedChoice = currentChoices[choiceIndex];
+
+        if (showDebug)
+            Debug.Log($"[{gameObject.name}] Choice {choiceIndex + 1} selected: '{selectedChoice.choiceText}' -> Jumping to Line {selectedChoice.nextLineIndex}");
+
+        // Invoke the choice event
+        selectedChoice.onChoiceSelected?.Invoke();
+
+        ClearChoices();
+        isShowingChoices = false;
+
+        // Move to the next line based on choice
+        if (selectedChoice.nextLineIndex == -1)
+        {
+            if (showDebug)
+                Debug.Log($"[{gameObject.name}] Choice ends dialogue (nextLineIndex = -1)");
+            EndDialogue();
+        }
+        else
+        {
+            currentLineIndex = selectedChoice.nextLineIndex;
+            if (currentLineIndex < dialogueLines.Length)
+            {
+                if (showDebug)
+                    Debug.Log($"[{gameObject.name}] Jumping to dialogue line {currentLineIndex}");
+                DisplayLine(currentLineIndex);
+            }
+            else
+            {
+                Debug.LogError($"[{gameObject.name}] Choice leads to invalid line index: {selectedChoice.nextLineIndex} (max: {dialogueLines.Length - 1})");
+                EndDialogue();
+            }
+        }
+    }
+
+    void ClearChoices()
+    {
+        currentChoices = null;
+
+        // Hide all buttons
+        for (int i = 0; i < allButtons.Length; i++)
+        {
+            if (allButtons[i] != null)
+            {
+                allButtons[i].gameObject.SetActive(false);
+            }
+        }
+
+        if (choiceContainer != null)
+            choiceContainer.SetActive(false);
     }
 
     void EndDialogue()
     {
-        // Mark current section as played if it was a section dialogue
-        if (currentSectionIndex < dialogueSections.Count &&
-            !dialogueSections[currentSectionIndex].hasBeenPlayed &&
-            currentDialogueLines == dialogueSections[currentSectionIndex].dialogueLines)
-        {
-            dialogueSections[currentSectionIndex].hasBeenPlayed = true;
-
-            if (showDebug)
-            {
-                Debug.Log($"Section '{dialogueSections[currentSectionIndex].sectionName}' marked as complete.");
-            }
-        }
+        if (showDebug)
+            Debug.Log($"[{gameObject.name}] Dialogue ended");
 
         isDialogueActive = false;
+        isShowingChoices = false;
         currentLineIndex = 0;
+
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
+
+        ClearChoices();
 
         if (dialogueUI != null) dialogueUI.SetActive(false);
 
-        // Show prompt again if still in range
         if (promptUI != null && isInRange)
-        {
             promptUI.SetActive(true);
-        }
+
+        // Re-enable camera control scripts
+        SetCameraControlEnabled(true);
     }
 
-    // Public method to unlock the next dialogue section
-    public void UnlockNextSection()
+    void SetCameraControlEnabled(bool enabled)
     {
-        if (currentSectionIndex < dialogueSections.Count - 1)
-        {
-            currentSectionIndex++;
+        if (cameraToLock == null) return;
 
-            if (showDebug)
-            {
-                Debug.Log($"Unlocked section {currentSectionIndex}: {dialogueSections[currentSectionIndex].sectionName}");
-            }
-        }
-        else
-        {
-            if (showDebug)
-            {
-                Debug.Log("No more sections to unlock.");
-            }
-        }
-    }
+        // Get all MonoBehaviour scripts on the camera
+        MonoBehaviour[] scripts = cameraToLock.GetComponents<MonoBehaviour>();
 
-    // Public method to unlock a specific section by index
-    public void UnlockSection(int sectionIndex)
-    {
-        if (sectionIndex >= 0 && sectionIndex < dialogueSections.Count)
+        foreach (MonoBehaviour script in scripts)
         {
-            currentSectionIndex = sectionIndex;
-
-            if (showDebug)
+            if (script != null)
             {
-                Debug.Log($"Unlocked section {sectionIndex}: {dialogueSections[sectionIndex].sectionName}");
+                // Skip built-in Unity components that shouldn't be disabled
+                string scriptType = script.GetType().Name;
+                if (scriptType != "Camera" &&
+                    scriptType != "AudioListener" &&
+                    scriptType != "Transform" &&
+                    scriptType != "FlareLayer")
+                {
+                    script.enabled = enabled;
+                    if (showDebug)
+                        Debug.Log($"[{gameObject.name}] Camera script '{scriptType}' enabled: {enabled}");
+                }
             }
         }
     }
 
-    // Public method to check current section
-    public int GetCurrentSectionIndex()
-    {
-        return currentSectionIndex;
-    }
-
-    // Public method to check if a section has been played
-    public bool HasSectionBeenPlayed(int sectionIndex)
-    {
-        if (sectionIndex >= 0 && sectionIndex < dialogueSections.Count)
-        {
-            return dialogueSections[sectionIndex].hasBeenPlayed;
-        }
-        return false;
-    }
-
-    // Draw interaction range in editor
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, interactionDistance);
+        Vector3 interactionPoint = transform.position + interactionOffset;
+        Gizmos.DrawWireSphere(interactionPoint, interactionDistance);
     }
 }

@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TriplanarPaintable
+  m_Shader: {fileID: 4800000, guid: c4d90fb3d60632243ac2f92907e55de6, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Control:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DayTex:
+        m_Texture: {fileID: 2800000, guid: f9ed4d33ce22b9141a2a57a20da93c44, type: 3}
+        m_Scale: {x: 1, y: 0.68}
+        m_Offset: {x: 0, y: 0}
+    - _NightTex:
+        m_Texture: {fileID: 2800000, guid: 8bbfcd50b8fe12b43b44216a3ade9c3c, type: 3}
+        m_Scale: {x: 0, y: 0}
+        m_Offset: {x: 0, y: 0}
+    - _Paint0:
+        m_Texture: {fileID: 2800000, guid: 2aba923340d83a14886524871e0a27d3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Paint1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Paint2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Paint3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PaintMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat0:
+        m_Texture: {fileID: 2800000, guid: a7b05dec520c8cf4c8e08dfef1f84db4, type: 3}
+        m_Scale: {x: 0.42, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat1:
+        m_Texture: {fileID: 2800000, guid: 62ca00121c2f0c646a26db82e26732c0, type: 3}
+        m_Scale: {x: 0.69, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat2:
+        m_Texture: {fileID: 2800000, guid: dca83dcb27c238d4b807b4746e7f6ffe, type: 3}
+        m_Scale: {x: 0.6, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat3:
+        m_Texture: {fileID: 2800000, guid: 9273b0666f47d5e4e86165bf96cb7404, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SteepDayTex:
+        m_Texture: {fileID: 2800000, guid: 02113d51372d3284cbced26597664b5d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SteepNightTex:
+        m_Texture: {fileID: 2800000, guid: 3469eab421539e74c980cfb17c4a8c2a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BendAmount: 0.0019999996
+    - _DayTiling: 1
+    - _Height1: 168
+    - _Height2: 124
+    - _HeightBlend: 17.4
+    - _Invert: 0
+    - _NightTiling: 0.11
+    - _Paint0Tiling: 1
+    - _Paint1Tiling: 1
+    - _Paint2Tiling: 1
+    - _Paint3Tiling: 1
+    - _SlopeBlend: 0.2
+    - _SlopeThreshold: 0.8
+    - _Splat0Tiling: 0.4
+    - _Splat1Tiling: 0.08
+    - _Splat2Tiling: 1
+    - _Splat3Tiling: 1
+    - _SteepDayTiling: -0.05
+    - _SteepNightTiling: 0.007
+    - _TriplanarBlend: 1
+    m_Colors: []
+  m_BuildTextureStacks: []

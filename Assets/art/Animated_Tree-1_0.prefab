@@ -10,10 +10,13 @@ GameObject:
   m_Component:
   - component: {fileID: 4523346565029056352}
   - component: {fileID: 3711713678046848827}
-  - component: {fileID: 4036577385692488849}
   - component: {fileID: 6234848788779163741}
   - component: {fileID: 1157086093836264221}
-  m_Layer: 0
+  - component: {fileID: 9196573246265344474}
+  - component: {fileID: -2775780650067621336}
+  - component: {fileID: -626411061922305966}
+  - component: {fileID: -6741547052757140441}
+  m_Layer: 2
   m_Name: Animated_Tree-1_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55,7 +58,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 7ba47080d7b545a49bf1dca13ac9656c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -76,8 +79,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 792b5ae7727769b49b34c5a829526fb9, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Sprite: {fileID: -1698430294, guid: 0ef5e864d71ff0a4c81e8733bfe4e0aa, type: 3}
+  m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -87,27 +90,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &4036577385692488849
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2559312860323911815}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 877d1695c11efb9449764458bbb325b4, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!136 &6234848788779163741
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -123,14 +105,14 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.64
   m_Height: 20.1
   m_Direction: 1
-  m_Center: {x: -0.8, y: 0, z: 0}
+  m_Center: {x: -1.12, y: 0, z: 0}
 --- !u!114 &1157086093836264221
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -144,6 +126,94 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   billboardType: 0
+  useDistanceCheck: 1
+  billboardDistance: 50
+  transitionSpeed: 5
+  playerTransform: {fileID: 0}
+  showDebug: 0
   lockX: 1
   lockY: 0
   lockZ: 0
+--- !u!114 &9196573246265344474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2559312860323911815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a6610d2e704f1648819acc8d7460285, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CollisionTag: Player
+  EventReference:
+    Guid:
+      Data1: 377460412
+      Data2: 1228599286
+      Data3: -1817421402
+      Data4: 1151521820
+    Path: event:/TreeInWind
+  Event: 
+  EventPlayTrigger: 1
+  EventStopTrigger: 2
+  AllowFadeout: 1
+  TriggerOnce: 0
+  Preload: 0
+  NonRigidbodyVelocity: 0
+  Params: []
+  OverrideAttenuation: 0
+  OverrideMinDistance: 1
+  OverrideMaxDistance: 20
+--- !u!114 &-2775780650067621336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2559312860323911815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9427a012c45f5124b89685d9f5a8609c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  emitter: {fileID: 0}
+  maxRandomDelay: 0.6
+--- !u!135 &-626411061922305966
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2559312860323911815}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 10.84
+  m_Center: {x: 0.06, y: 0, z: 6.1}
+--- !u!114 &-6741547052757140441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2559312860323911815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35b38f34403576c4bb5a773f5d47d14d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  highResSprite: {fileID: -1698430294, guid: 0ef5e864d71ff0a4c81e8733bfe4e0aa, type: 3}
+  medResSprite: {fileID: 0}
+  lowResSprite: {fileID: 0}
+  medDistance: 20
+  lowDistance: 200

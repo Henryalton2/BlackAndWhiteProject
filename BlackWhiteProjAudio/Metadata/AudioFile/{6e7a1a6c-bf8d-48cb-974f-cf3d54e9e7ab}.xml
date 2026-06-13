@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{6e7a1a6c-bf8d-48cb-974f-cf3d54e9e7ab}">
+		<property name="assetPath">
+			<value>Walkmusic/Bass 1-LABS (64 Bit).mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>72</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{4025f0f0-33d1-4d5e-89c5-b38a55f9b121}</destination>
+		</relationship>
+	</object>
+</objects>

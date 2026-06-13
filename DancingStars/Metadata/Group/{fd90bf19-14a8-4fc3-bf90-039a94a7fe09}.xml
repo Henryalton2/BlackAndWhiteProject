@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="MixerGroup" id="{fd90bf19-14a8-4fc3-bf90-039a94a7fe09}">
+		<property name="name">
+			<value>Celeste</value>
+		</property>
+		<relationship name="effectChain">
+			<destination>{bd53d51e-7449-4d55-ab29-90b5e4205efd}</destination>
+		</relationship>
+		<relationship name="panner">
+			<destination>{df8e0aeb-3465-4198-bbe1-c7c6e0c5486d}</destination>
+		</relationship>
+		<relationship name="output">
+			<destination>{83118815-9a35-49fd-9e97-3665ffcb1753}</destination>
+		</relationship>
+	</object>
+	<object class="MixerBusEffectChain" id="{bd53d51e-7449-4d55-ab29-90b5e4205efd}">
+		<relationship name="effects">
+			<destination>{503a8073-1326-4103-924a-cd66a63f7c2e}</destination>
+		</relationship>
+	</object>
+	<object class="MixerBusPanner" id="{df8e0aeb-3465-4198-bbe1-c7c6e0c5486d}" />
+	<object class="MixerBusFader" id="{503a8073-1326-4103-924a-cd66a63f7c2e}" />
+</objects>

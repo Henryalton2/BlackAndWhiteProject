@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="DataFile" id="{696aa002-e697-498d-9098-d90039c3293d}">
+		<property name="assetPath">
+			<value>DancingStars/Bass 2-BBC Symphony Orchestra.mp3.meta</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{4025f0f0-33d1-4d5e-89c5-b38a55f9b121}</destination>
+		</relationship>
+	</object>
+</objects>
